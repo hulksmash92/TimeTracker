@@ -25,6 +25,7 @@ type User struct {
 	created           time.Time
 	updated           time.Time
 	githubUserId      string
+	avatar            string
 	apiClients        []ApiClient
 }
 
