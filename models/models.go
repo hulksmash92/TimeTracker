@@ -30,7 +30,7 @@ type User struct {
 
 type RepoItem struct {
 	itemId      uuid.UUID
-	timeId      int
+	timeEntryId uint
 	itemType    string
 	source      string
 	created     time.Time
@@ -39,7 +39,7 @@ type RepoItem struct {
 }
 
 type TimeEntry struct {
-	entryId   int
+	entryId   uint
 	userId    uuid.UUID
 	created   time.Time
 	updated   uuid.UUID

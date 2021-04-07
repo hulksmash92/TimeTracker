@@ -6,17 +6,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	initDotEnv()
-
-	port := ":" + os.Getenv("PORT")
-
-	log.Printf("Listening on http://localhost:%s/", port)
-	log.Fatal(http.ListenAndServe(port, initRouter()))
+	initRouter()
 }
 
 func initDotEnv() { // Loads the .env file into out system
@@ -26,12 +21,12 @@ func initDotEnv() { // Loads the .env file into out system
 	}
 }
 
-func initRouter() *mux.Router {
-	// Initialise out mux router
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", homePage)
+func initRouter() {
+	http.HandleFunc("/", homePage)
+	port := ":" + os.Getenv("PORT")
 
-	return router
+	log.Printf("Listening on http://localhost:%s/", port)
+	log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
