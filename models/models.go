@@ -17,11 +17,11 @@ type ApiClient struct {
 }
 
 type User struct {
-	userId            uuid.UUID
+	id                uuid.UUID
 	name              string
 	email             string
 	encryptedPassword string
-	organisation      string
+	organisations     []Organisation
 	created           time.Time
 	updated           time.Time
 	githubUserId      string
@@ -29,24 +29,38 @@ type User struct {
 	apiClients        []ApiClient
 }
 
-type RepoItem struct {
-	itemId      uuid.UUID
-	timeEntryId uint
-	itemType    string
-	source      string
-	created     time.Time
-	repooName   string
+type Organisation struct {
+	id          uuid.UUID
+	name        string
 	description string
+	avatar      string
+}
+
+type RepoItem struct {
+	id           uint
+	timeEntryId  uint
+	itemIdSource string
+	itemType     string
+	source       string
+	created      time.Time
+	repoName     string
+	description  string
+}
+
+type Tag struct {
+	id   uint
+	name string
 }
 
 type TimeEntry struct {
-	entryId   uint
-	userId    uuid.UUID
-	created   time.Time
-	updated   uuid.UUID
-	comments  string
-	tags      []string
-	repoItems []RepoItem
-	value     float32
-	valueType string
+	id             uint
+	userId         uuid.UUID
+	organisationId uuid.UUID
+	comments       string
+	created        time.Time
+	updated        time.Time
+	value          float32
+	valueType      string
+	tags           []Tag
+	repoItems      []RepoItem
 }
