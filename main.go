@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,13 +21,10 @@ func initDotEnv() { // Loads the .env file into out system
 }
 
 func initRouter() {
-	http.HandleFunc("/", homePage)
-	port := ":" + os.Getenv("PORT")
+	fileServer := http.FileServer(http.Dir("./ClientApp/dist"))
+	http.Handle("/", http.StripPrefix("/", fileServer))
 
+	port := ":" + os.Getenv("PORT")
 	log.Printf("Listening on http://localhost:%s/", port)
 	log.Fatal(http.ListenAndServe(port, nil))
-}
-
-func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to the Home Page!")
 }
