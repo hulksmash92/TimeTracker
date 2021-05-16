@@ -2,9 +2,11 @@ package routes
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"timetracker/helpers"
 
 	"github.com/gorilla/mux"
 )
@@ -24,20 +26,26 @@ func configureRouter() *mux.Router {
 	// Add any additional middleware
 	router.Use(PanicHandler)
 
+	// Configure any API routes
+	router.HandleFunc("/api/github/login", getGitHubLoginUrl).Methods(http.MethodGet)
+
 	// Configure the static file serving for the SPA
 	spa := SpaHandler{staticPath: "./ClientApp/dist/", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 
-	// Configure any API routes
-	router.HandleFunc("/api/test", testRoute).Methods(http.MethodGet)
-
 	return router
 }
 
-func testRoute(w http.ResponseWriter, r *http.Request) {
-	resp := map[string]interface{}{
-		"message": "Success",
-	}
+// Reads the body of the http request to a byte array, handling any errors that may occur
+func readBody(r *http.Request) []byte {
+	body, err := ioutil.ReadAll(r.Body)
+	helpers.HandleError(err)
+
+	return body
+}
+
+// Correctly formats and encodes an API response
+func apiResponse(call map[string]interface{}, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(call)
 }
