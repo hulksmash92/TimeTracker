@@ -27,16 +27,19 @@ func configureRouter() *mux.Router {
 	router.Use(PanicHandler)
 
 	// Configure any API routes
-	router.HandleFunc("/api/github/login", getGitHubLoginUrl).Methods(http.MethodGet)
+	router.HandleFunc("/api/github/url", getGitHubLoginUrl).Methods(http.MethodGet)
+	router.HandleFunc("/api/github/login", getGitHubAccessToken).Methods(http.MethodPost)
 
 	// Configure the static file serving for the SPA
+	// This must be configured after API routes to stop any /api/
+	// requests being redirected to our SPA
 	spa := SpaHandler{staticPath: "./ClientApp/dist/", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 
 	return router
 }
 
-// Reads the body of the http request to a byte array, handling any errors that may occur
+// Reads the body of the http request to a byte array, handles any errors that may occur
 func readBody(r *http.Request) []byte {
 	body, err := ioutil.ReadAll(r.Body)
 	helpers.HandleError(err)
