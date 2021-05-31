@@ -8,15 +8,9 @@ import (
 	"os"
 )
 
-var (
-	// ID of the GitHub OAuth application
-	clientId = os.Getenv("GITHUB_CLIENT_ID")
-	// Secret for this applicaiton to send up to github when requesting new tokens
-	clientSecret = os.Getenv("GITHUB_CLIENT_Secret")
-)
-
 // Gets the URL this application uses to log user's into the app using their GitHub creds
 func LoginUrl() (string, error) {
+	clientId := os.Getenv("GITHUB_CLIENT_ID")
 	scopes := os.Getenv("GITHUB_SCOPES")
 	if scopes == "" {
 		scopes = "user:email"
@@ -35,6 +29,8 @@ func LoginUrl() (string, error) {
 
 // Gets the access token for github
 func GetAccessToken(sessionCode string) (url.Values, error) {
+	clientId := os.Getenv("GITHUB_CLIENT_ID")
+	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
 	data := url.Values{
 		"client_id":     {clientId},
 		"client_secret": {clientSecret},

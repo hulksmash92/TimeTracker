@@ -2,13 +2,14 @@ package routes
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"timetracker/github"
 	"timetracker/helpers"
 )
 
 type GHTokenReqBody struct {
-	sessionCode string
+	SessionCode string `json:sessionCode`
 }
 
 // Gets the github URL for logging into this app with GitHub
@@ -23,12 +24,15 @@ func getGitHubLoginUrl(w http.ResponseWriter, r *http.Request) {
 
 // Gets the users access token
 func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
-	body := readBody(r)
+	//body := readBody(r)
+
 	var fmtBody GHTokenReqBody
-	err := json.Unmarshal(body, &fmtBody)
+	err := json.NewDecoder(r.Body).Decode(&fmtBody)
 	helpers.HandleError(err)
 
-	token, err := github.GetAccessToken(fmtBody.sessionCode)
+	log.Printf("sessionCode: %s", fmtBody.SessionCode)
+
+	token, err := github.GetAccessToken(fmtBody.SessionCode)
 	helpers.HandleError(err)
 
 	// Return the response as is for now

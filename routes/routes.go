@@ -15,7 +15,7 @@ import (
 func ListenAndServe() {
 	router := configureRouter()
 	port := ":" + os.Getenv("PORT")
-	log.Printf("Listening on http://localhost:%s/", port)
+	log.Printf("Listening on http://localhost%s/", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }
 
