@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"timetracker/helpers"
 )
 
 // Gets the URL this application uses to log user's into the app using their GitHub creds
@@ -28,7 +29,7 @@ func LoginUrl() (string, error) {
 }
 
 // Gets the access token for github
-func GetAccessToken(sessionCode string) (url.Values, error) {
+func GetAccessToken(sessionCode string) (string, error) {
 	clientId := os.Getenv("GITHUB_CLIENT_ID")
 	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
 	data := url.Values{
@@ -38,17 +39,19 @@ func GetAccessToken(sessionCode string) (url.Values, error) {
 	}
 	tokenUrl := os.Getenv("GITHUB_URL_TOKEN")
 
+	var token string
+
 	// Make a request to github to get the user's access token
 	// Check for any errors in the request
 	resp, err := http.PostForm(tokenUrl, data)
 	if err != nil {
-		return nil, err
+		return token, err
 	}
 
 	// Parse the body to a byte[] and check for any errors
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return token, err
 	}
 
 	// Response is returned a query string format, so parse this to url.Values
@@ -56,15 +59,22 @@ func GetAccessToken(sessionCode string) (url.Values, error) {
 	tokenRes := string(body[:])
 	tokenResData, err := url.ParseQuery(tokenRes)
 	if err != nil {
-		return nil, err
+		return token, err
 	}
 
 	// Check for any errors in the token response body
 	tokenErr := tokenResData.Get("error")
 	if tokenErr != "" {
-		return nil, errors.New(tokenErr)
+		return token, errors.New(tokenErr)
+	}
+
+	scopes := tokenResData["scope"]
+
+	if !helpers.StrArrayContains(scopes, "user:read") {
+		return token, errors.New("Invalid token scopes")
 	}
 
 	// If no errors have been found, return the parsed response to the caller
-	return tokenResData, nil
+	token = tokenResData.Get("access_token")
+	return token, nil
 }

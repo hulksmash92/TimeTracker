@@ -15,8 +15,7 @@ func main() {
 
 // Loads the .env file into our system
 func initDotEnv() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
 }

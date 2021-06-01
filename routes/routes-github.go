@@ -2,8 +2,9 @@ package routes
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+	"os"
+	"time"
 	"timetracker/github"
 	"timetracker/helpers"
 )
@@ -24,20 +25,28 @@ func getGitHubLoginUrl(w http.ResponseWriter, r *http.Request) {
 
 // Gets the users access token
 func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
-	//body := readBody(r)
-
+	body := readBody(r)
 	var fmtBody GHTokenReqBody
-	err := json.NewDecoder(r.Body).Decode(&fmtBody)
+	err := json.Unmarshal(body, &fmtBody)
 	helpers.HandleError(err)
-
-	log.Printf("sessionCode: %s", fmtBody.SessionCode)
 
 	token, err := github.GetAccessToken(fmtBody.SessionCode)
 	helpers.HandleError(err)
 
-	// Return the response as is for now
-	// TODO 1: Set a cookie containing the user's token
+	// 1: Set a cookie containing the user's token that we can use for future request
+	isDev := os.Getenv("HOSTING_ENV") == "Development"
+	cookie := &http.Cookie{
+		Name:     "LoginData",
+		Value:    token,
+		Expires:  time.Now().AddDate(0, 0, 30),
+		Secure:   !isDev,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, cookie)
+
 	// TODO 2: Create a new user if its this user's first time logging into our application
+
 	// TODO 3: Return the users details for and their settings
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(token)
