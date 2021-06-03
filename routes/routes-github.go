@@ -3,12 +3,12 @@ package routes
 import (
 	"encoding/json"
 	"net/http"
-	"os"
-	"time"
 	"timetracker/github"
 	"timetracker/helpers"
+	"timetracker/models"
 )
 
+// Type that defines the structure of the access token request body
 type GHTokenReqBody struct {
 	SessionCode string `json:sessionCode`
 }
@@ -33,21 +33,24 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 	token, err := github.GetAccessToken(fmtBody.SessionCode)
 	helpers.HandleError(err)
 
+	ct, err := github.CheckToken(token)
+	helpers.HandleError(err)
+
 	// 1: Set a cookie containing the user's token that we can use for future request
-	isDev := os.Getenv("HOSTING_ENV") == "Development"
-	cookie := &http.Cookie{
-		Name:     "LoginData",
-		Value:    token,
-		Expires:  time.Now().AddDate(0, 0, 30),
-		Secure:   !isDev,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	}
-	http.SetCookie(w, cookie)
+	// isDev := os.Getenv("HOSTING_ENV") == "Development"
+	// cookie := &http.Cookie{
+	// 	Name:     "LoginData",
+	// 	Value:    token,
+	// 	Expires:  time.Now().AddDate(0, 0, 30),
+	// 	Secure:   !isDev,
+	// 	HttpOnly: true,
+	// 	SameSite: http.SameSiteStrictMode,
+	// }
+	// http.SetCookie(w, cookie)
 
 	// TODO 2: Create a new user if its this user's first time logging into our application
 
 	// TODO 3: Return the users details for and their settings
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(token)
+	json.NewEncoder(w).Encode(ct.User)
 }

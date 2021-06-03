@@ -1,17 +1,23 @@
 package github
 
 import (
+	"context"
 	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+
+	"golang.org/x/oauth2"
+
 	"timetracker/helpers"
+
+	"github.com/google/go-github/v35/github"
 )
 
 // Gets the URL this application uses to log user's into the app using their GitHub creds
 func LoginUrl() (string, error) {
-	clientId := os.Getenv("GITHUB_CLIENT_ID")
+	clientId := getClientID()
 	scopes := os.Getenv("GITHUB_SCOPES")
 	if scopes == "" {
 		scopes = "user:email"
@@ -30,8 +36,8 @@ func LoginUrl() (string, error) {
 
 // Gets the access token for github
 func GetAccessToken(sessionCode string) (string, error) {
-	clientId := os.Getenv("GITHUB_CLIENT_ID")
-	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
+	clientId := getClientID()
+	clientSecret := getClientSecret()
 	data := url.Values{
 		"client_id":     {clientId},
 		"client_secret": {clientSecret},
@@ -68,13 +74,56 @@ func GetAccessToken(sessionCode string) (string, error) {
 		return token, errors.New(tokenErr)
 	}
 
-	scopes := tokenResData["scope"]
-
-	if !helpers.StrArrayContains(scopes, "user:read") {
+	if !helpers.StrArrayContains(tokenResData["scope"], "user:email") {
 		return token, errors.New("Invalid token scopes")
 	}
 
 	// If no errors have been found, return the parsed response to the caller
 	token = tokenResData.Get("access_token")
 	return token, nil
+}
+
+// Checks the access token given to a user
+func CheckToken(token string) (*github.Authorization, error) {
+	clientID := getClientID()
+	client, ctx := getBasicAuthClient()
+	auth, _, err := client.Authorizations.Check(ctx, clientID, token)
+
+	if auth == nil || err != nil {
+		return nil, err
+	}
+
+	return auth, nil
+}
+
+// Gets a new github client with basic auth configured
+func getBasicAuthClient() (*github.Client, context.Context) {
+	ctx := context.Background()
+	bat := &github.BasicAuthTransport{
+		Username: getClientID(),
+		Password: getClientSecret(),
+	}
+	return github.NewClient(bat.Client()), ctx
+}
+
+// Gets a new authenticated github oauth client
+func getOauthClient(token string) (*github.Client, context.Context) {
+	oauthToken := &oauth2.Token{
+		AccessToken: token,
+	}
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(oauthToken)
+	tc := oauth2.NewClient(ctx, ts)
+	ghClient := github.NewClient(tc)
+	return ghClient, ctx
+}
+
+// Gets the GitHub OAuth client ID
+func getClientID() string {
+	return os.Getenv("GITHUB_CLIENT_ID")
+}
+
+// Gets the client secret for the GitHub OAuth client
+func getClientSecret() string {
+	return os.Getenv("GITHUB_CLIENT_SECRET")
 }

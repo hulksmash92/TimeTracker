@@ -17,16 +17,15 @@ type ApiClient struct {
 }
 
 type User struct {
-	id                uuid.UUID
-	name              string
-	email             string
-	encryptedPassword string
-	organisations     []Organisation
-	created           time.Time
-	updated           time.Time
-	githubUserId      string
-	avatar            string
-	apiClients        []ApiClient
+	id            uuid.UUID
+	name          string
+	email         string
+	organisations *[]Organisation
+	created       time.Time
+	updated       time.Time
+	githubUserId  string
+	avatar        string
+	apiClients    *[]ApiClient
 }
 
 type Organisation struct {
