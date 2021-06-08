@@ -1,6 +1,4 @@
---CREATE DATABASE timetracker;
-
-SHOW SEARCH_PATH;
+CREATE DATABASE timetracker;
 
 SET SEARCH_PATH TO timetracker;
 
