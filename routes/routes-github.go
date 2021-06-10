@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"timetracker/github"
 	"timetracker/helpers"
-	"timetracker/models"
 )
 
-// Type that defines the structure of the access token request body
+// Defines the structure of the access token request body
 type GHTokenReqBody struct {
 	SessionCode string `json:sessionCode`
 }
@@ -30,9 +29,11 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(body, &fmtBody)
 	helpers.HandleError(err)
 
+	// Grab the access token
 	token, err := github.GetAccessToken(fmtBody.SessionCode)
 	helpers.HandleError(err)
 
+	// call the check token method to get our logged in users details
 	ct, err := github.CheckToken(token)
 	helpers.HandleError(err)
 
