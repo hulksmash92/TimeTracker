@@ -1,17 +1,20 @@
-CREATE DATABASE timetracker;
+--CREATE DATABASE timetracker;
 
 SET SEARCH_PATH TO timetracker;
 
-DROP TABLE IF EXISTS public.UserOrgLink;
-DROP TABLE IF EXISTS public.TimeEntryTagLink;
-DROP TABLE IF EXISTS public.Tag;
-DROP TABLE IF EXISTS public.RepoItem;
-DROP TABLE IF EXISTS public.TimeEntry;
-DROP TABLE IF EXISTS public.ApiClient;
-DROP TABLE IF EXISTS public.Organisation;
-DROP TABLE IF EXISTS public.User;
+SET SEARCH_PATH TO public;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE public.User(
+DROP TABLE IF EXISTS public.tbl_UserOrgLink;
+DROP TABLE IF EXISTS public.tbl_TimeEntryTagLink;
+DROP TABLE IF EXISTS public.tbl_Tag;
+DROP TABLE IF EXISTS public.tbl_RepoItem;
+DROP TABLE IF EXISTS public.tbl_TimeEntry;
+DROP TABLE IF EXISTS public.tbl_ApiClient;
+DROP TABLE IF EXISTS public.tbl_Organisation;
+DROP TABLE IF EXISTS public.tbl_User;
+
+CREATE TABLE public.tbl_User(
     id SERIAL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     email VARCHAR(400),
@@ -21,10 +24,10 @@ CREATE TABLE public.User(
     avatar TEXT
 );
 
-CREATE INDEX IX_user_githubUserId ON public.User (githubuserid);
-CREATE INDEX IX_user_email ON public.User (email);
+CREATE INDEX IX_user_githubUserId ON public.tbl_User (githubuserid);
+CREATE INDEX IX_user_email ON public.tbl_User (email);
 
-CREATE TABLE public.Organisation(
+CREATE TABLE public.tbl_Organisation(
     id SERIAL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     description varchar(500),
@@ -34,26 +37,25 @@ CREATE TABLE public.Organisation(
     updated TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE public.UserOrgLink(
+CREATE TABLE public.tbl_UserOrgLink(
     organisationId INT,
     userId INT
 );
 
-ALTER TABLE public.UserOrgLink
+ALTER TABLE public.tbl_UserOrgLink
     ADD CONSTRAINT FK_UserOrgLink_OrganisationId 
         FOREIGN KEY (organisationId)
-        REFERENCES public.Organisation (id)
+        REFERENCES public.tbl_Organisation (id)
         ON DELETE CASCADE;
 
-ALTER TABLE public.UserOrgLink
+ALTER TABLE public.tbl_UserOrgLink
     ADD CONSTRAINT FK_UserOrgLink_UserId 
         FOREIGN KEY (userId)
-        REFERENCES public.User (id)
+        REFERENCES public.tbl_User (id)
         ON DELETE CASCADE;
 
-CREATE TABLE public.ApiClient(
-    id SERIAL PRIMARY KEY,
-    clientId UUID,
+CREATE TABLE public.tbl_ApiClient(
+    clientId UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
     userId INT,
     secretKey UUID,
     appName VARCHAR(50) NOT NULL,
@@ -63,15 +65,13 @@ CREATE TABLE public.ApiClient(
     updated TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IX_apiclient_clientId ON ApiClient (clientId);
-
-ALTER TABLE public.ApiClient
+ALTER TABLE public.tbl_ApiClient
     ADD CONSTRAINT FK_ApiClient_UserId
     FOREIGN KEY (userId)
-    REFERENCES public.User (id)
+    REFERENCES public.tbl_User (id)
     ON DELETE CASCADE;
 
-CREATE TABLE public.TimeEntry(
+CREATE TABLE public.tbl_TimeEntry(
     id BIGSERIAL PRIMARY KEY,
     comments VARCHAR(200),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -82,20 +82,20 @@ CREATE TABLE public.TimeEntry(
     organisationId INT
 );
 
-CREATE INDEX IX_timeentry_created ON public.TimeEntry (created);
-CREATE INDEX IX_timeentry_updated ON public.TimeEntry (updated);
+CREATE INDEX IX_timeentry_created ON public.tbl_TimeEntry (created);
+CREATE INDEX IX_timeentry_updated ON public.tbl_TimeEntry (updated);
 
-ALTER TABLE public.TimeEntry
+ALTER TABLE public.tbl_TimeEntry
     ADD CONSTRAINT FK_TimeEntry_OrganisationId 
         FOREIGN KEY (organisationId)
-        REFERENCES public.Organisation (id);
+        REFERENCES public.tbl_Organisation (id);
 
-ALTER TABLE public.TimeEntry
+ALTER TABLE public.tbl_TimeEntry
     ADD CONSTRAINT FK_TimeEntry_UserId 
         FOREIGN KEY (userId)
-        REFERENCES public.User (id);
+        REFERENCES public.tbl_User (id);
 
-CREATE TABLE public.RepoItem(
+CREATE TABLE public.tbl_RepoItem(
     id BIGSERIAL PRIMARY KEY,
     itemIdSource VARCHAR(200) NOT NULL,
     itemType VARCHAR(50) NOT NULL,
@@ -106,32 +106,32 @@ CREATE TABLE public.RepoItem(
     timeEntryId BIGINT
 );
 
-CREATE INDEX IX_repoitem_source ON RepoItem (source);
+CREATE INDEX IX_repoitem_source ON tbl_RepoItem (source);
 
-ALTER TABLE public.RepoItem
+ALTER TABLE public.tbl_RepoItem
     ADD CONSTRAINT FK_RepoItem_TimeEntryId 
         FOREIGN KEY (timeEntryId)
-        REFERENCES public.TimeEntry (id)
+        REFERENCES public.tbl_TimeEntry (id)
         ON DELETE CASCADE;
 
-CREATE TABLE public.Tag(
+CREATE TABLE public.tbl_Tag(
     id SERIAL PRIMARY KEY,
     name varchar(50)
 );
 
-CREATE TABLE public.TimeEntryTagLink(
+CREATE TABLE public.tbl_TimeEntryTagLink(
     tagId INT,
     timeEntryId BIGINT
 );
 
-ALTER TABLE public.TimeEntryTagLink
+ALTER TABLE public.tbl_TimeEntryTagLink
     ADD CONSTRAINT FK_TimeEntryTagLink_TagId 
         FOREIGN KEY (tagId)
-        REFERENCES public.Tag (id)
+        REFERENCES public.tbl_Tag (id)
         ON DELETE CASCADE;
 
-ALTER TABLE public.TimeEntryTagLink
+ALTER TABLE public.tbl_TimeEntryTagLink
     ADD CONSTRAINT FK_TimeEntryTagLink_TimeEntryId 
         FOREIGN KEY (timeEntryId)
-        REFERENCES public.TimeEntry (id)
+        REFERENCES public.tbl_TimeEntry (id)
         ON DELETE CASCADE;
