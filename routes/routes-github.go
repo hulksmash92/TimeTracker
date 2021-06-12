@@ -2,9 +2,14 @@ package routes
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"time"
+	usersdb "timetracker/db/users"
 	"timetracker/github"
 	"timetracker/helpers"
+	"timetracker/models"
 )
 
 // Defines the structure of the access token request body
@@ -37,21 +42,37 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 	ct, err := github.CheckToken(token)
 	helpers.HandleError(err)
 
-	// 1: Set a cookie containing the user's token that we can use for future request
-	// isDev := os.Getenv("HOSTING_ENV") == "Development"
-	// cookie := &http.Cookie{
-	// 	Name:     "LoginData",
-	// 	Value:    token,
-	// 	Expires:  time.Now().AddDate(0, 0, 30),
-	// 	Secure:   !isDev,
-	// 	HttpOnly: true,
-	// 	SameSite: http.SameSiteStrictMode,
-	// }
-	// http.SetCookie(w, cookie)
+	// 1: Create a new user if its this user's
+	//    first time logging into our application
+	//    or get the existing users details
 
-	// TODO 2: Create a new user if its this user's first time logging into our application
+	var user models.User
 
-	// TODO 3: Return the users details for and their settings
+	if !usersdb.GitHubUserExists(*ct.User.Login) {
+		fmt.Printf("Github user %s does not exist in the db", *ct.User.Login)
+
+		user = usersdb.CreateUser(*ct.User)
+
+		fmt.Printf("User created for %s in the db", *ct.User.Login)
+	} else {
+		user = usersdb.GetUserByGitHubLogin(*ct.User.Login)
+	}
+
+	// 2: Set a cookie containing the user's token
+	//    that we can use for future request
+
+	isDev := os.Getenv("HOSTING_ENV") == "Development"
+	cookie := &http.Cookie{
+		Name:     "LoginData",
+		Value:    token,
+		Expires:  time.Now().AddDate(0, 0, 30),
+		Secure:   !isDev,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, cookie)
+
+	// 3: Return the users details for and their settings
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ct.User)
+	json.NewEncoder(w).Encode(user)
 }

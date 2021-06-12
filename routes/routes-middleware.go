@@ -2,10 +2,14 @@ package routes
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
+	"timetracker/github"
+	"timetracker/helpers"
 )
 
 // Recovers the application from a runtime error
@@ -66,4 +70,59 @@ func (h SpaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// otherwise, use http.FileServer to serve the static dir
 	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
+}
+
+// Checks if the route requires authentication and then checks if the user is currently logged in
+func CheckAuthHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if routeRequiresAuthentication(r) && !isLoggedIn(r) {
+			resp := map[string]interface{}{
+				"message": "Access denied, please login and try again",
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(resp)
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Checks if the route requires authentication
+func routeRequiresAuthentication(r *http.Request) bool {
+	unauthedRoutes := []string{"/api/github/url", "/api/github/login"}
+	return helpers.StrArrayContains(unauthedRoutes, r.RequestURI)
+}
+
+// Checks if the user is currently logged in
+func isLoggedIn(r *http.Request) bool {
+	token, err := parseTokenFromCookie(r)
+	if err != nil {
+		println(err)
+		return false
+	}
+
+	_, err = github.CheckToken(token)
+	if err != nil {
+		println(err)
+		return false
+	}
+
+	return true
+}
+
+// Parses the login token from the LoginData HTTP cookie if it exists
+func parseTokenFromCookie(r *http.Request) (string, error) {
+	var token string
+	cookie, err := r.Cookie("LoginData")
+	if err != nil {
+		return token, err
+	}
+	if cookie.Expires.Before(time.Now()) {
+		return token, errors.New("Session expired")
+	}
+
+	token = cookie.Value
+	return token, nil
 }

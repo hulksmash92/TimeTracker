@@ -17,7 +17,7 @@ export class AppComponent implements OnDestroy {
     this.routeQuerySub = route.queryParamMap.subscribe({
       next: (queryParams: ParamMap) => {
         if (queryParams.has('code')) {
-          //this.getAccessToken(queryParams.get('code'));
+          this.getAccessToken(queryParams.get('code'));
         }
       }
     });
