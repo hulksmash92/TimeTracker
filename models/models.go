@@ -25,8 +25,8 @@ type User struct {
 	Updated       time.Time      `json:"updated"`
 	GithubUserId  string         `json:"githubUserId"`
 	Avatar        string         `json:"avatar"`
-	Organisations []Organisation `json:"organisations,omitempty"`
-	ApiClients    []ApiClient    `json:"apiClient,omitempty"`
+	Organisations []Organisation `json:"organisations"`
+	ApiClients    []ApiClient    `json:"apiClients"`
 }
 
 type Organisation struct {
@@ -34,6 +34,7 @@ type Organisation struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Avatar      string    `json:"avatar"`
+	Source      string    `json:"source"`
 	Created     time.Time `json:"created"`
 	Updated     time.Time `json:"updated"`
 }

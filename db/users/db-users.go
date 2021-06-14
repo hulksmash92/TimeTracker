@@ -54,8 +54,40 @@ func GetUserByGitHubLogin(githubUserId string) models.User {
 		WHERE githubUserId = $1
 	`
 	row := dbConn.QueryRow(query, githubUserId)
+	user := readUserFromSqlRow(row)
 
-	return readUserFromSqlRow(row)
+	query = `
+		SELECT clientId, appName, description, validTill, created, updated 
+		FROM tbl_apiclient 
+		WHERE userId = $1
+	`
+	clientRows, err := dbConn.Query(query, user.Id)
+	helpers.HandleError(err)
+	defer clientRows.Close()
+
+	for clientRows.Next() {
+		var a models.ApiClient
+		clientRows.Scan(&a.ClientId, &a.AppName, &a.Description, &a.ValidTill, &a.Created, &a.Updated)
+		user.ApiClients = append(user.ApiClients, a)
+	}
+
+	query = `
+		SELECT o.id, o.name, o.description, o.avatar, o.source, o.updated
+		FROM tbl_userorglink AS uol
+		INNER JOIN tbl_organisation AS o ON uol.organisationid = o.id
+		WHERE uol.userid = $1
+	`
+	orgRows, err := dbConn.Query(query, user.Id)
+	helpers.HandleError(err)
+	defer orgRows.Close()
+
+	for orgRows.Next() {
+		var o models.Organisation
+		orgRows.Scan(&o.Id, &o.Name, &o.Description, &o.Avatar, &o.Source, &o.Created, &o.Updated)
+		user.Organisations = append(user.Organisations, o)
+	}
+
+	return user
 }
 
 // Reads a user from a sql row

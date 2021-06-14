@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 	"timetracker/github"
 	"timetracker/helpers"
@@ -91,8 +92,12 @@ func CheckAuthHandler(next http.Handler) http.Handler {
 
 // Checks if the route requires authentication
 func routeRequiresAuthentication(r *http.Request) bool {
+	if !strings.Contains(r.RequestURI, "/api/") {
+		return false
+	}
+
 	unauthedRoutes := []string{"/api/github/url", "/api/github/login"}
-	return helpers.StrArrayContains(unauthedRoutes, r.RequestURI)
+	return !helpers.StrArrayContains(unauthedRoutes, r.RequestURI)
 }
 
 // Checks if the user is currently logged in
