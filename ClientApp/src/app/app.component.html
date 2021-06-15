@@ -1,4 +1,17 @@
-<main>
-  <button *ngIf="!authed" class="login-btn" (click)="handleGitHubLogin()">Login With GitHub</button>
-  <div class="details">{{details | json}}</div>
-</main>
+<mat-toolbar color="primary">
+
+  <user-menu></user-menu>
+</mat-toolbar>
+<mat-sidenav-container>
+  <mat-sidenav #sidenav>
+
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <main>
+      
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+

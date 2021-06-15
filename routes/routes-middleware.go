@@ -2,13 +2,11 @@ package routes
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 	"timetracker/github"
 	"timetracker/helpers"
 )
@@ -123,9 +121,6 @@ func parseTokenFromCookie(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("LoginData")
 	if err != nil {
 		return token, err
-	}
-	if cookie.Expires.Before(time.Now()) {
-		return token, errors.New("Session expired")
 	}
 
 	token = cookie.Value

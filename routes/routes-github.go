@@ -67,7 +67,7 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 		Value:    token,
 		Path:     "/",
 		Expires:  time.Now().Add(expires),
-		MaxAge:   int(expires.Seconds()),
+		MaxAge:   0,
 		Secure:   !isDev,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
