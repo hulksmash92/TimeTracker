@@ -4,11 +4,9 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-const httpOptions = {
-  headers: new HttpHeaders({
-    'Content-Type': 'application/json'
-  }),
-};
+const headers = new HttpHeaders({
+  'Content-Type': 'application/json'
+});
 
 @Injectable({
   providedIn: 'root'
@@ -27,8 +25,11 @@ export class AuthService {
   loginGitHub(sessionCode: string): Observable<any> {
     const url = `${this.GH_API_URL}/login`;
     const body = JSON.stringify({sessionCode});
-    return this.http.post(url, body, httpOptions);
+    return this.http.post(url, body, { headers, withCredentials: true });
   }
 
+  getUser(): Observable<any> {
+    return this.http.get(`/api/user`, { withCredentials: true });
+  }
 
 }

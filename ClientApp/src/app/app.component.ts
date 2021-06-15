@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 
 import { Subscription } from 'rxjs';
@@ -9,9 +9,10 @@ import { AuthService } from './services/auth/auth.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnDestroy {
+export class AppComponent implements OnInit, OnDestroy {
   private routeQuerySub = new Subscription();
   details: any;
+  authed: boolean;
 
   constructor(route: ActivatedRoute, private authService: AuthService) {
     this.routeQuerySub = route.queryParamMap.subscribe({
@@ -21,6 +22,14 @@ export class AppComponent implements OnDestroy {
         }
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.authService.getUser()
+      .subscribe((res: any) => {
+        this.details = res;
+        this.authed = !!res;
+      });
   }
 
   ngOnDestroy(): void {

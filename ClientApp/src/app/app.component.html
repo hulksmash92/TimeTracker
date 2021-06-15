@@ -1,5 +1,4 @@
 <main>
-  <button class="login-btn" (click)="handleGitHubLogin()">Login With GitHub</button>
+  <button *ngIf="!authed" class="login-btn" (click)="handleGitHubLogin()">Login With GitHub</button>
   <div class="details">{{details | json}}</div>
-
 </main>

@@ -61,15 +61,20 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 	// 2: Set a cookie containing the user's token
 	//    that we can use for future request
 	isDev := os.Getenv("HOSTING_ENV") == "Development"
+	expires := 30 * 24 * time.Hour
 	cookie := &http.Cookie{
 		Name:     "LoginData",
 		Value:    token,
-		Expires:  time.Now().AddDate(0, 0, 30),
+		Path:     "/",
+		Expires:  time.Now().Add(expires),
+		MaxAge:   int(expires.Seconds()),
 		Secure:   !isDev,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
+		Unparsed: []string{},
 	}
 	http.SetCookie(w, cookie)
+	w.WriteHeader(http.StatusOK)
 
 	// 3: Return the users details for and their settings
 	w.Header().Set("Content-Type", "application/json")
