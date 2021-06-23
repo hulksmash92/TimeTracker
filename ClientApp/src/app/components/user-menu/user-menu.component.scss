@@ -1,0 +1,20 @@
+::ng-deep {
+    $blank-icon-size: 36px;
+
+    .blank-user-icon {
+        .material-icons {
+            font-size: $blank-icon-size;
+        }
+
+        .mat-icon {
+            height: $blank-icon-size;
+            width: $blank-icon-size;
+        }
+    }
+
+    .user-menu-btn {
+        min-width: 0 !important;
+        line-height: normal !important;
+        padding: 0 !important;
+    }
+}

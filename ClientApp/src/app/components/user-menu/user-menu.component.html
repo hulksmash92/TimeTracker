@@ -1,1 +1,31 @@
+<button mat-button
+        class="user-menu-btn" 
+        [mat-menu-trigger-for]="userMenu">
+    <span *ngIf="!user; else loggedIn" 
+          class="blank-user-icon">
+        <mat-icon>account_circle</mat-icon>
+    </span>
 
+    <ng-template #loggedIn>
+        <avatar [avatar]="user?.avatar"
+                [name]="user?.name"
+                diameter="36px">
+        </avatar>
+    </ng-template>
+</button>
+
+<mat-menu #userMenu="matMenu">
+    <ng-template matMenuContent>
+        <ng-container *ngIf="!user; else loggedInMenu">
+            <button mat-menu-item>
+                Log in with GitHub
+            </button>
+        </ng-container>
+        
+        <ng-template #loggedInMenu>
+            <mat-menu-item>
+                Signed in as {{user.name}}
+            </mat-menu-item>
+        </ng-template>
+    </ng-template>
+</mat-menu>
