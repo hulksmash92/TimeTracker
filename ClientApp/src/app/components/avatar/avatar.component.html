@@ -1,0 +1,14 @@
+<span class="avatar-wrapper">
+    <div class="avatar-content bg-mat-accent"
+         [ngStyle]="wrapperStyles">
+
+        <img *ngIf="!!avatar; else placeholder"
+             [src]="avatar"
+             [alt]="name + ' avatar'"
+             class="avatar-image">
+
+        <ng-template #placeholder>
+            <span class="avatar-initials" [style.fontSize]="fontSize">{{initials}}</span>
+        </ng-template>
+    </div>
+</span>

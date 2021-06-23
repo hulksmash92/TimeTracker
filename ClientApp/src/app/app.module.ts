@@ -8,11 +8,13 @@ import { MaterialModule } from './modules/material/material.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { UserMenuComponent } from './components/user-menu/user-menu.component';
+import { AvatarComponent } from './components/avatar/avatar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    UserMenuComponent
+    UserMenuComponent,
+    AvatarComponent
   ],
   imports: [
     BrowserModule,

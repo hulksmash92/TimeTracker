@@ -29,7 +29,7 @@ func TestStrArrayContains(t *testing.T) {
 	}
 }
 
-func TestGeneratePsqlConnStr(t *testing.T) {
+func Test_generatePsqlConnStr(t *testing.T) {
 	// Set some env values when testing
 	os.Setenv("PSQL_HOST", "localhost")
 	os.Setenv("PSQL_PORT", "5432")
