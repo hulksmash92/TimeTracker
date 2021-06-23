@@ -55,37 +55,37 @@ describe('AvatarComponent', () => {
     expect(component.getFontSize()).toEqual('55%');
 
     component.diameter = '10rem';
-    expect(component.getFontSize()).toEqual('5.5rem');
+    expect(component.getFontSize()).toEqual('5rem');
 
     component.diameter = '10em';
-    expect(component.getFontSize()).toEqual('5.5em');
+    expect(component.getFontSize()).toEqual('5em');
 
     component.diameter = '10vh';
-    expect(component.getFontSize()).toEqual('5.5vh');
+    expect(component.getFontSize()).toEqual('5vh');
 
     component.diameter = '10vw';
-    expect(component.getFontSize()).toEqual('5.5vw');
+    expect(component.getFontSize()).toEqual('5vw');
 
     component.diameter = '10vmin';
-    expect(component.getFontSize()).toEqual('5.5vmin');
+    expect(component.getFontSize()).toEqual('5vmin');
 
     component.diameter = '10vmax';
-    expect(component.getFontSize()).toEqual('5.5vmax');
+    expect(component.getFontSize()).toEqual('5vmax');
 
     component.diameter = '10cm';
-    expect(component.getFontSize()).toEqual('5.5cm');
+    expect(component.getFontSize()).toEqual('5cm');
 
     component.diameter = '10mm';
-    expect(component.getFontSize()).toEqual('5.5mm');
+    expect(component.getFontSize()).toEqual('5mm');
 
     component.diameter = '10in';
-    expect(component.getFontSize()).toEqual('5.5in');
+    expect(component.getFontSize()).toEqual('5in');
 
     component.diameter = '10ex';
-    expect(component.getFontSize()).toEqual('5.5ex');
+    expect(component.getFontSize()).toEqual('5ex');
 
     component.diameter = '10ch';
-    expect(component.getFontSize()).toEqual('5.5ch');
+    expect(component.getFontSize()).toEqual('5ch');
   });
 
   describe('#ngOnChanges()', () => {
