@@ -28,8 +28,4 @@ export class AuthService {
     return this.http.post(url, body, { headers, withCredentials: true });
   }
 
-  getUser(): Observable<any> {
-    return this.http.get(`/api/user`, { withCredentials: true });
-  }
-
 }
