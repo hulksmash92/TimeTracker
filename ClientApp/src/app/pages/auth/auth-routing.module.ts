@@ -4,7 +4,7 @@ import { AuthComponent } from './auth.component';
 
 const routes: Routes = [
   { path: '', component: AuthComponent },
-  { path: 'github', redirectTo: '' }
+  { path: ':provider', component: AuthComponent },
 ];
 
 @NgModule({
