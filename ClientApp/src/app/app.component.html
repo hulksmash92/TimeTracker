@@ -1,19 +1,19 @@
-<mat-toolbar color="primary"
-             class="top-toolbar">
-  <span class="toolbar-spacer"></span>
-  <user-menu></user-menu>
-</mat-toolbar>
+<div class="vw-100 vh-100 d-flex flex-column">
+  <mat-toolbar color="primary"
+               class="top-toolbar">
+    <span class="toolbar-spacer"></span>
+    <user-menu></user-menu>
+  </mat-toolbar>
 
-<mat-sidenav-container>
-  <mat-sidenav #sidenav>
+  <mat-sidenav-container class="flex-fill">
+    <mat-sidenav #sidenav>
 
-  </mat-sidenav>
+    </mat-sidenav>
 
-  <mat-sidenav-content>
-    <main>
-      <router-outlet></router-outlet>
-    </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
-
-
+    <mat-sidenav-content class="h-100">
+      <main class="py-2 h-100">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
