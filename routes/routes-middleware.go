@@ -11,6 +11,13 @@ import (
 	"timetracker/helpers"
 )
 
+// API routes that allow unauthenticated access
+var unauthedRoutes = []string{
+	"/api/github/url",
+	"/api/github/login",
+	"/api/auth/isAuthenticated",
+}
+
 // Recovers the application from a runtime error
 func PanicHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -93,8 +100,6 @@ func routeRequiresAuthentication(r *http.Request) bool {
 	if !strings.Contains(r.RequestURI, "/api/") {
 		return false
 	}
-
-	unauthedRoutes := []string{"/api/github/url", "/api/github/login"}
 	return !helpers.StrArrayContains(unauthedRoutes, r.RequestURI)
 }
 
@@ -122,7 +127,6 @@ func parseTokenFromCookie(r *http.Request) (string, error) {
 	if err != nil {
 		return token, err
 	}
-
 	token = cookie.Value
 	return token, nil
 }

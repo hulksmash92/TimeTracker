@@ -1,8 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+
 import { User } from 'src/app/models/user';
 
 const headers = new HttpHeaders({
@@ -13,10 +15,29 @@ const headers = new HttpHeaders({
   providedIn: 'root'
 })
 export class AuthService {
+  readonly API_URL = '/api/auth';
   readonly GH_API_URL = '/api/github';
   user: User;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private router: Router) { }
+
+  /**
+   * Checks if the user is authenticated
+   */
+  isAuthenticated(): Promise<boolean> {
+    return this.http.get(`${this.API_URL}/isAuthenticated`).pipe(
+      map((res: any) => res?.success),
+      catchError((err: any) => of(false))
+    )
+    .toPromise()
+    .then((success: boolean) => {
+      if (!success) {
+        this.user = null;
+        this.router.navigate(['']);
+      }
+      return success;
+    });
+  }
 
   /**
    * Gets the url for signing in with GitHub
