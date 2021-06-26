@@ -11,6 +11,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/auth/auth.module').then(m => m.AuthModule)
   },
   {
+    path: 'time',
+    loadChildren: () => import('./pages/time/time.module').then(m => m.TimeModule),
+    canLoad: [AuthGuard]
+  },
+  {
     path: 'settings',
     loadChildren: () => import('./pages/settings/settings.module').then(m => m.SettingsModule),
     canLoad: [AuthGuard]
