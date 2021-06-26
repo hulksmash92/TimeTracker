@@ -55,15 +55,21 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
+type OwnerTrimmed struct {
+	Id     uint   `json:"id"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+}
+
 type TimeEntry struct {
-	Id             uint       `json:"id"`
-	UserId         uint       `json:"userId"`
-	OrganisationId uint       `json:"organisationId"`
-	Comments       string     `json:"comments"`
-	Created        time.Time  `json:"created"`
-	Updated        time.Time  `json:"updated"`
-	Value          float32    `json:"value"`
-	ValueType      string     `json:"valueType"`
-	Tags           []Tag      `json:"tags,omitempty"`
-	RepoItems      []RepoItem `json:"repoItems,omitempty"`
+	Id           uint         `json:"id"`
+	User         OwnerTrimmed `json:"user"`
+	Organisation OwnerTrimmed `json:"organisation"`
+	Comments     string       `json:"comments"`
+	Created      time.Time    `json:"created"`
+	Updated      time.Time    `json:"updated"`
+	Value        float32      `json:"value"`
+	ValueType    string       `json:"valueType"`
+	Tags         []Tag        `json:"tags,omitempty"`
+	RepoItems    []RepoItem   `json:"repoItems,omitempty"`
 }
