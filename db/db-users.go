@@ -1,4 +1,4 @@
-package usersdb
+package db
 
 import (
 	"database/sql"
@@ -7,6 +7,21 @@ import (
 
 	"github.com/google/go-github/v35/github"
 )
+
+// Gets the user id for the selected github user
+func GetUserId(githubUserId string) uint {
+	dbConn := helpers.ConnectDB()
+	defer dbConn.Close()
+
+	query := `SELECT id FROM tbl_user WHERE githubUserId = $1`
+	row := dbConn.QueryRow(query, githubUserId)
+
+	var id uint
+	err := row.Scan(&id)
+	helpers.HandleError(err)
+
+	return id
+}
 
 // Checks if the githubUserId exists in the database
 func GitHubUserExists(githubUserId string) bool {

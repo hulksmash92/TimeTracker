@@ -32,6 +32,7 @@ func configureRouter() *mux.Router {
 	router.HandleFunc("/api/github/login", getGitHubAccessToken).Methods(http.MethodPost)
 	router.HandleFunc("/api/user", getUser).Methods(http.MethodGet)
 	router.HandleFunc("/api/auth/isAuthenticated", isAuthenticated).Methods(http.MethodGet)
+	router.HandleFunc("/api/time", getTimeEntries).Methods(http.MethodGet)
 
 	// Configure the static file serving for the SPA
 	// This must be configured after API routes to stop any /api/

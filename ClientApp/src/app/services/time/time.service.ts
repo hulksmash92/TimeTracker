@@ -31,10 +31,10 @@ export class TimeService {
   get(from: Date, to: Date, repo: string): Observable<TimeEntry[]> {
     let params = new HttpParams();
     if (!!from) {
-      params = params.append('from', from.toISOString());
+      params = params.append('from', this.dateToString(from));
     }
     if (!!to) {
-      params = params.append('to', to.toISOString());
+      params = params.append('to', this.dateToString(to));
     }
 
     return this.http.get(this.API_URL, { params }).pipe(
@@ -80,6 +80,11 @@ export class TimeService {
     return this.http.delete(`${this.API_URL}/${id}`).pipe(
       map((res: any) => res?.data)
     );
+  }
+
+
+  dateToString(d: Date): string {
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
   }
 
 }

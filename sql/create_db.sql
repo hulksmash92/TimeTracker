@@ -102,6 +102,7 @@ CREATE TABLE public.tbl_RepoItem(
     source VARCHAR(50) NOT NULL,
     created TIMESTAMP NOT NULL,
     updated TIMESTAMP NOT NULL DEFAULT NOW(),
+    repoName VARCHAR(200) NOT NULL,
     description VARCHAR(2000),
     timeEntryId BIGINT
 );

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-	usersdb "timetracker/db/users"
+	"timetracker/db"
 	"timetracker/github"
 	"timetracker/helpers"
 	"timetracker/models"
@@ -48,14 +48,12 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 
 	var user models.User
 
-	if !usersdb.GitHubUserExists(*ct.User.Login) {
+	if !db.GitHubUserExists(*ct.User.Login) {
 		fmt.Printf("Github user %s does not exist in the db", *ct.User.Login)
-
-		user = usersdb.CreateUser(*ct.User)
-
+		user = db.CreateUser(*ct.User)
 		fmt.Printf("User created for %s in the db", *ct.User.Login)
 	} else {
-		user = usersdb.GetUserByGitHubLogin(*ct.User.Login)
+		user = db.GetUserByGitHubLogin(*ct.User.Login)
 	}
 
 	// 2: Set a cookie containing the user's token
