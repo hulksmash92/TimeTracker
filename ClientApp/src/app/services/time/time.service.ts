@@ -3,13 +3,13 @@ import { Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Tag } from 'src/app/models/tag';
 
 import { TimeEntry } from 'src/app/models/time-entry';
 
 const headers = new HttpHeaders({
   'Content-Type': 'application/json'
 });
-
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +18,15 @@ export class TimeService {
   readonly API_URL: string = '/api/time';
 
   constructor(private http: HttpClient) { }
+
+  /**
+   * Gets all tags for adding onto time entries
+   */
+  getTags(): Observable<Tag[]> {
+    return this.http.get(`${this.API_URL}/tags`).pipe(
+      map((res: any) => res?.data || [])
+    );
+  }
 
   /**
    * Gets all time entries for the selected conditions
@@ -82,7 +91,13 @@ export class TimeService {
     );
   }
 
-
+  /**
+   * Converts the date into a string in yyyy-MM-dd format
+   * 
+   * @param d date to convert
+   * 
+   * @returns the passed date in yyyy-MM-dd
+   */
   dateToString(d: Date): string {
     return `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
   }

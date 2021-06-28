@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"timetracker/db"
+	"timetracker/github"
 	"timetracker/helpers"
 
 	"github.com/gorilla/mux"
@@ -32,7 +34,9 @@ func configureRouter() *mux.Router {
 	router.HandleFunc("/api/github/login", getGitHubAccessToken).Methods(http.MethodPost)
 	router.HandleFunc("/api/user", getUser).Methods(http.MethodGet)
 	router.HandleFunc("/api/auth/isAuthenticated", isAuthenticated).Methods(http.MethodGet)
-	router.HandleFunc("/api/time", getTimeEntries).Methods(http.MethodGet)
+	router.HandleFunc("/api/time", timeRouteHandler).Methods(http.MethodGet, http.MethodPost)
+	router.HandleFunc("/api/time/{id}", timeRouteHandler).Methods(http.MethodPatch, http.MethodDelete)
+	router.HandleFunc("/api/time/tags", getTags).Methods(http.MethodGet)
 
 	// Configure the static file serving for the SPA
 	// This must be configured after API routes to stop any /api/
@@ -55,4 +59,13 @@ func readBody(r *http.Request) []byte {
 func apiResponse(call map[string]interface{}, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(call)
+}
+
+// Parses the token from the cookie and gets the id of currently logged in user
+func getUserId(r *http.Request) uint {
+	token, err := parseTokenFromCookie(r)
+	helpers.HandleError(err)
+	ct, err := github.CheckToken(token)
+	helpers.HandleError(err)
+	return db.GetUserId(*ct.User.Login)
 }
