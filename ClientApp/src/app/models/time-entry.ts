@@ -1,10 +1,16 @@
 import { RepoItem } from './repo-item';
 import { Tag } from './tag';
 
+export interface OwnerTrimmed {
+    id: number;
+    name: string;
+    avatar: string;
+}
+
 export interface TimeEntry {
     id?: number;
-    userId?: number;
-    organisationId?: number;
+    user: OwnerTrimmed;
+    organisation?: OwnerTrimmed;
     comments: string;
     created?: string;
     updated?: string;

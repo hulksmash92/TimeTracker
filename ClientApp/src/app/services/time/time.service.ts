@@ -40,10 +40,10 @@ export class TimeService {
   get(from: Date, to: Date, repo: string): Observable<TimeEntry[]> {
     let params = new HttpParams();
     if (!!from) {
-      params = params.append('from', this.dateToString(from));
+      params = params.append('from', from.toISOString());
     }
     if (!!to) {
-      params = params.append('to', this.dateToString(to));
+      params = params.append('to', to.toISOString());
     }
 
     return this.http.get(this.API_URL, { params }).pipe(
@@ -89,17 +89,6 @@ export class TimeService {
     return this.http.delete(`${this.API_URL}/${id}`).pipe(
       map((res: any) => res?.data)
     );
-  }
-
-  /**
-   * Converts the date into a string in yyyy-MM-dd format
-   * 
-   * @param d date to convert
-   * 
-   * @returns the passed date in yyyy-MM-dd
-   */
-  dateToString(d: Date): string {
-    return `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
   }
 
 }

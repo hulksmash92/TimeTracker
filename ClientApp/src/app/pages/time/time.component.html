@@ -1,1 +1,11 @@
-<p>time works!</p>
+<mat-card class="mat-elevation-z4">
+    <time-table *ngIf="!editing; else timeForm"
+                [data]="data"
+                (updateItem)="editing = $event;"
+                (deleteItem)="delete($event)">
+    </time-table>
+
+    <ng-template #timeForm>
+        <time-form></time-form>
+    </ng-template>
+</mat-card>

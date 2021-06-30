@@ -9,11 +9,11 @@ import (
 
 // Describes the structure of fields on a time entry that can be updated
 type UpdatedTimeEntry struct {
-	Comments  *string
-	Value     *float32
-	ValueType *string
-	Tags      *[]models.Tag
-	RepoItems *[]models.RepoItem
+	Comments  *string            `json:"comments"`
+	Value     *float32           `json:"value"`
+	ValueType *string            `json:"valueType"`
+	Tags      *[]models.Tag      `json:"tags,omitempty"`
+	RepoItems *[]models.RepoItem `json:"repoItems,omitempty"`
 }
 
 // Gets all time entries for a user and the given date range

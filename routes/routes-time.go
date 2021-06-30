@@ -31,19 +31,17 @@ func timeRouteHandler(w http.ResponseWriter, r *http.Request) {
 func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 	userId := getUserId(r)
 
-	dateFrom, err := time.Parse("2006-08-25", r.URL.Query().Get("dateFrom"))
+	dateFrom, err := time.Parse("2006-08-25T14:22:21.835Z", r.URL.Query().Get("dateFrom"))
 	if err != nil {
 		dateFrom = time.Now().AddDate(0, 0, -29)
 	}
-
-	dateTo, err := time.Parse("2006-08-25", r.URL.Query().Get("dateTo"))
+	dateTo, err := time.Parse("2006-08-25T14:22:21.835Z", r.URL.Query().Get("dateTo"))
 	if err != nil {
 		dateTo = time.Now()
 	}
 
 	timeData := db.GetTimeEntries(userId, dateFrom, dateTo)
 	res := map[string]interface{}{"data": timeData}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)
 }
@@ -60,7 +58,6 @@ func createTime(w http.ResponseWriter, r *http.Request) {
 	entryId := db.CreateTimeEntry(fmtBody)
 	timeData := db.GetTimeEntry(entryId)
 	res := map[string]interface{}{"data": timeData}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)
 }
