@@ -12,6 +12,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -29,6 +30,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatMenuModule,
     MatNativeDateModule,
     MatPaginatorModule,
+    MatSelectModule,
     MatSidenavModule,
     MatSortModule,
     MatTableModule,

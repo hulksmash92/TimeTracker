@@ -23,9 +23,9 @@
         </ng-container>
         
         <ng-template #loggedInMenu>
-            <mat-menu-item>
+            <button mat-menu-item>
                 Signed in as {{user.name}}
-            </mat-menu-item>
+            </button>
 
             <button mat-menu-item [routerLink]="['/settings']">
                 <mat-icon>settings</mat-icon> Account Settings
