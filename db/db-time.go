@@ -21,7 +21,13 @@ func GetTimeEntries(userId uint, dateFrom time.Time, dateTo time.Time) []models.
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
-	rows, err := dbConn.Query(`call sp_time_get($1, $2, $3)`, userId, dateFrom, dateTo)
+	query := `
+		SELECT *
+		FROM vw_time_entries AS t
+		WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3
+		ORDER BY created DESC;
+	`
+	rows, err := dbConn.Query(query, userId, dateFrom, dateTo)
 	helpers.HandleError(err)
 	defer rows.Close()
 	time := []models.TimeEntry{}
@@ -44,7 +50,7 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
-	row := dbConn.QueryRow(`call sp_time_get_by_id($1)`, id)
+	row := dbConn.QueryRow(`SELECT * FROM vw_time_entries AS t WHERE t.id = $1;`, id)
 	var t models.TimeEntry
 	var u models.OwnerTrimmed
 	var o models.OwnerTrimmed
@@ -56,7 +62,7 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	t.Tags = []models.Tag{}
 
 	// Get the tags for the time entry
-	rows, err := dbConn.Query(`call sp_time_tags($1)`, id)
+	rows, err := dbConn.Query(`SELECT * FROM vw_time_entry_tags WHERE timeentryid = $1`, id)
 	helpers.HandleError(err)
 	defer rows.Close()
 	for rows.Next() {
@@ -66,7 +72,7 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	}
 
 	// Get the repo items added to the time entry
-	repoRows, err := dbConn.Query(`call sp_time_repoitems($1)`, id)
+	repoRows, err := dbConn.Query(`SELECT * FROM vw_repo_items WHERE timeentryid = $1;`, id)
 	helpers.HandleError(err)
 	defer repoRows.Close()
 	for repoRows.Next() {
@@ -83,7 +89,7 @@ func CreateTimeEntry(t models.TimeEntry) uint {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
-	row := dbConn.QueryRow(`call sp_time_insert($1, $2, $3, $4, $5)`, t.User.Id, t.Organisation.Id, t.Comments, t.Value, t.ValueType)
+	row := dbConn.QueryRow(`call sp_time_insert($1, $2, $3, $4, $5, 0)`, t.User.Id, t.Organisation.Id, t.Comments, t.Value, t.ValueType)
 	err := row.Scan(&t.Id)
 	helpers.HandleError(err)
 
@@ -153,7 +159,7 @@ func UpdateTimeEntry(userId uint, timeEntryId uint, vals UpdatedTimeEntry) error
 
 			// Delete the item if its not in the list
 			if !isInList {
-				dbConn.Exec(`DELETE FROM tbl_repoitem WHERE id = $1`, id)
+				dbConn.Exec(`call sp_time_repoitem_delete($1)`, id)
 			}
 		}
 

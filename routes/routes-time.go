@@ -31,11 +31,11 @@ func timeRouteHandler(w http.ResponseWriter, r *http.Request) {
 func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 	userId := getUserId(r)
 
-	dateFrom, err := time.Parse("2006-08-25T14:22:21.835Z", r.URL.Query().Get("dateFrom"))
+	dateFrom, err := time.Parse("2006-08-25T14:22:21.835Z", r.URL.Query().Get("from"))
 	if err != nil {
 		dateFrom = time.Now().AddDate(0, 0, -29)
 	}
-	dateTo, err := time.Parse("2006-08-25T14:22:21.835Z", r.URL.Query().Get("dateTo"))
+	dateTo, err := time.Parse("2006-08-25T14:22:21.835Z", r.URL.Query().Get("to"))
 	if err != nil {
 		dateTo = time.Now()
 	}

@@ -33,11 +33,10 @@ export class TimeService {
    * 
    * @param from date range start
    * @param to date range end
-   * @param repo Git repository that the time entries relate to, null for all
    * 
    * @returns array of the time entries
    */
-  get(from: Date, to: Date, repo: string): Observable<TimeEntry[]> {
+  get(from: Date, to: Date): Observable<TimeEntry[]> {
     let params = new HttpParams();
     if (!!from) {
       params = params.append('from', from.toISOString());

@@ -1,12 +1,5 @@
-
-CREATE OR REPLACE PROCEDURE sp_time_get (
-    user_id bigint,
-    date_from timestamp,
-    date_to timestamp
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
+CREATE OR REPLACE VIEW vw_time_entries
+AS (
     SELECT t.id, t.created, t.updated, t.value, t.valueType,
         coalesce(t.comments, '') AS comments,
         coalesce(t.userId, 0) AS userId,
@@ -18,36 +11,29 @@ BEGIN
     FROM tbl_timeentry AS t
     LEFT JOIN tbl_user AS u ON u.id = t.userId
     LEFT JOIN tbl_organisation AS o ON o.id = t.organisationId
-    WHERE t.userId = user_id
-        AND t.created >= date_from
-        AND t.created <= date_to
-    ORDER BY created DESC;
-END;$$;
+);
 
-CREATE OR REPLACE PROCEDURE sp_time_get_by_id (entry_id BIGINT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    SELECT t.id, t.created, t.updated, t.value, t.valueType,
-        coalesce(t.comments, '') AS comments,
-        coalesce(t.userId, 0) AS userId,
-        coalesce(u.name, '') AS username,
-        coalesce(u.avatar, '') AS userAvatar,
-        coalesce(t.organisationId, 0) AS organisationId,
-        coalesce(o.name, '') AS organisation,
-        coalesce(o.avatar, '') AS organisationAvatar
-    FROM tbl_timeentry AS t
-    LEFT JOIN tbl_user AS u ON u.id = t.userId
-    LEFT JOIN tbl_organisation AS o ON o.id = t.organisationId
-    WHERE t.id = entry_id;
-END;$$;
+CREATE OR REPLACE VIEW vw_time_entry_tags
+AS (
+    SELECT t.id, t.name, ttl.timeentryid
+    FROM tbl_timeentrytaglink AS ttl
+    INNER JOIN tbl_tag AS t ON t.id = ttl.tagid
+);
+
+CREATE OR REPLACE VIEW vw_repo_items
+AS (
+    SELECT r.id, r.created, r.updated, r.itemidsource, r.itemtype, r.source, r.reponame,
+        coalesce(r.description, '') AS description, r.timeentryid
+    FROM tbl_repoitem AS r
+);
 
 CREATE OR REPLACE PROCEDURE sp_time_insert (
     arg_user_id BIGINT,
     arg_org_id BIGINT,
     arg_comments VARCHAR(200),
     arg_value NUMERIC,
-    arg_valueType varchar(20)
+    arg_valueType VARCHAR(20),
+    timeentryid INOUT BIGINT
 )
 LANGUAGE plpgsql
 AS $$
@@ -60,7 +46,7 @@ BEGIN
     END IF;
     IF arg_comments == '' THEN
         arg_comments = NULL;
-    end if;
+    END IF;
 
     INSERT INTO tbl_timeentry (
         userId,
@@ -76,9 +62,7 @@ BEGIN
         arg_value,
         arg_valueType
     )
-    RETURNING id;
-
-    COMMIT;
+    RETURNING id INTO timeentryid;
 END;$$;
 
 CREATE OR REPLACE PROCEDURE sp_time_delete (entry_id BIGINT)
@@ -86,34 +70,11 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     DELETE FROM tbl_timeentry WHERE id = entry_id;
-    COMMIT;
-END;$$;
-
-CREATE OR REPLACE PROCEDURE sp_time_tags (time_entry_id BIGINT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    SELECT t.id, t.name
-    FROM tbl_timeentrytaglink AS ttl
-    INNER JOIN tbl_tag AS t ON t.id = ttl.tagid
-    WHERE ttl.timeentryid = time_entry_id
-    ORDER BY name;
-END;$$;
-
-CREATE OR REPLACE PROCEDURE sp_time_repoitems (time_entry_id BIGINT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    SELECT r.id, r.created, r.updated, r.itemidsource, r.itemtype, r.source, r.reponame,
-        coalesce(r.description, '') AS description
-    FROM tbl_repoitem AS r
-    WHERE r.timeentryid = time_entry_id
-    ORDER BY r.updated;
 END;$$;
 
 CREATE OR REPLACE PROCEDURE sp_time_tags_insert (
     time_entry_id BIGINT,
-    tag_name varchar(50),
+    tag_name VARCHAR(50),
     tag_id BIGINT
 )
 LANGUAGE plpgsql
@@ -129,31 +90,20 @@ BEGIN
 
     INSERT INTO tbl_timeentrytaglink (tagid, timeentryid)
     VALUES (tag_id, time_entry_id);
-
-    COMMIT;
 END;$$;
 
-CREATE OR REPLACE PROCEDURE sp_time_tags_delete (
-    time_entry_id BIGINT,
-    tag_id BIGINT
-)
+CREATE OR REPLACE PROCEDURE sp_time_tags_delete (time_entry_id BIGINT, tag_id BIGINT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    DELETE FROM tbl_timeentrytaglink
-    WHERE tagid = tag_id AND timeentryid = time_entry_id;
-
-    COMMIT;
+    DELETE FROM tbl_timeentrytaglink WHERE tagid = tag_id AND timeentryid = time_entry_id;
 END;$$;
 
 CREATE OR REPLACE PROCEDURE sp_time_repoitem_delete (item_id BIGINT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    DELETE FROM tbl_repoitem
-    WHERE id = item_id;
-
-    COMMIT;
+    DELETE FROM tbl_repoitem WHERE id = item_id;
 END;$$;
 
 CREATE OR REPLACE PROCEDURE sp_time_repoitem_insert (
@@ -185,8 +135,5 @@ BEGIN
         item_desc,
         time_entry_id,
         repo_name
-    )
-    RETURNING id;
-
-    COMMIT;
+    );
 END;$$;

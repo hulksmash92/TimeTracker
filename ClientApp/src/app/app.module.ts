@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { MaterialModule } from './modules/material/material.module';
 import { AppRoutingModule } from './app-routing.module';
@@ -25,6 +26,7 @@ import { HomeComponent } from './pages/home/home.component';
     BrowserAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
+    MatNativeDateModule,
     AppRoutingModule,
     MaterialModule,
     AvatarModule

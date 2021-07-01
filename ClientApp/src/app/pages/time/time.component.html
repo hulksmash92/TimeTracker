@@ -1,11 +1,30 @@
-<mat-card class="mat-elevation-z4">
-    <time-table *ngIf="!editing; else timeForm"
-                [data]="data"
+<mat-card class="mat-elevation-z4 py-2" *ngIf="!editing && !showForm; else timeForm">
+    <div class="d-flex align-items-center">
+        <mat-form-field>
+            <mat-label>Created Date Range</mat-label>
+            <mat-date-range-input [rangePicker]="dtRangePicker">
+                <input matStartDate placeholder="From" [formControl]="dateFrom">
+                <input matEndDate placeholder="To" [formControl]="dateTo">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="dtRangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #dtRangePicker></mat-date-range-picker>
+        </mat-form-field>
+
+        <div class="flex-fill"></div>
+
+        <button mat-raised-button color="accent" class="ml-2" (click)="showForm = true;">
+            Add Entry
+        </button>
+    </div>
+
+    <time-table [data]="data"
                 (updateItem)="editing = $event;"
                 (deleteItem)="delete($event)">
     </time-table>
-
-    <ng-template #timeForm>
-        <time-form></time-form>
-    </ng-template>
 </mat-card>
+
+<ng-template #timeForm>
+    <div class="container">
+        <time-form></time-form>
+    </div>
+</ng-template>

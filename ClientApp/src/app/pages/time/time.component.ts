@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, merge, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { FormControl } from '@angular/forms';
+
+import { merge, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
+
 import { TimeEntry } from 'src/app/models/time-entry';
 import { TimeService } from 'src/app/services/time/time.service';
 
@@ -14,9 +17,8 @@ export class TimeComponent implements OnInit, OnDestroy {
   showForm: boolean;
   data: TimeEntry[] = [];
   editing: TimeEntry;
-  dateFrom: BehaviorSubject<Date> = new BehaviorSubject<Date>(null);
-  dateTo: BehaviorSubject<Date> = new BehaviorSubject<Date>(null);
-  repo: BehaviorSubject<string> = new BehaviorSubject<string>(null);
+  dateFrom: FormControl = new FormControl(null);
+  dateTo: FormControl = new FormControl(null);
 
   constructor(private readonly timeService: TimeService) {
     this.resetParams();
@@ -24,46 +26,44 @@ export class TimeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.filterSub = merge(
-      this.dateFrom.pipe(distinctUntilChanged(), debounceTime(200)),
-      this.dateTo.pipe(distinctUntilChanged(), debounceTime(200)),
-      this.repo.pipe(distinctUntilChanged()),
+      this.dateFrom.valueChanges.pipe(distinctUntilChanged(), debounceTime(200)),
+      this.dateTo.valueChanges.pipe(distinctUntilChanged(), debounceTime(200)),
     )
     .subscribe(() => {
       this.get();
     });
+
+    this.get();
   }
 
   ngOnDestroy(): void {
     this.filterSub.unsubscribe();
-    this.dateFrom.complete();
-    this.dateTo.complete();
-    this.repo.complete();
   }
 
   /**
    * Resets the table filter params
    */
   resetParams(): void {
-    this.repo.next(null);
-    this.dateTo.next(new Date());
+    this.dateTo.setValue(new Date());
 
     const d = new Date();
     d.setDate(d.getDate() - 29);
-    this.dateFrom.next(d);
+    this.dateFrom.setValue(d);
   }
 
   /**
    * Gets time entries that a user has access to
    */
   get(): void {
-    const dtF = this.dateFrom.value;
-    const dtT = this.dateTo.value;
-    const repo = this.repo.value;
-
-    this.timeService.get(dtF, dtT, repo)
-      .subscribe((res: TimeEntry[]) => {
-        this.data = res;
-      });
+    const dtF: Date = this.dateFrom.value;
+    const dtT: Date = this.dateTo.value;
+    
+    if (!!dtF && !!dtT) {
+      this.timeService.get(dtF, dtT)
+        .subscribe((res: TimeEntry[]) => {
+          this.data = res;
+        });
+    }
   }
 
   /**

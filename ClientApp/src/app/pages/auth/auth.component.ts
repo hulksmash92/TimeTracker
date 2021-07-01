@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
 import { Subscription } from 'rxjs';
 
@@ -13,7 +13,11 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 export class AuthComponent implements OnDestroy {
   private routeQuerySub = new Subscription();
 
-  constructor(route: ActivatedRoute, private readonly authService: AuthService) {
+  constructor(
+    route: ActivatedRoute, 
+    private readonly authService: AuthService, 
+    private readonly router: Router
+  ) {
     this.routeQuerySub = route.queryParamMap.subscribe({
       next: (queryParams: ParamMap) => {
         if (queryParams.has('code')) {
@@ -33,6 +37,9 @@ export class AuthComponent implements OnDestroy {
     this.authService.loginGitHub(sessionCode)
       .subscribe((res: any) => {
         this.authService.user = res;
+        if (!!res) {
+          this.router.navigate(['/time']);
+        }
       });
   }
 
