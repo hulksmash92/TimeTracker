@@ -10,6 +10,8 @@ import (
 	"timetracker/github"
 	"timetracker/helpers"
 	"timetracker/models"
+
+	"github.com/gorilla/mux"
 )
 
 // Defines the structure of the access token request body
@@ -77,4 +79,45 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 	// 3: Return the users details for and their settings
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
+}
+
+// Searches for github repos
+func searchRepos(w http.ResponseWriter, r *http.Request) {
+	searchQuery := r.URL.Query().Get("query")
+	if searchQuery == "" {
+		apiResponse(map[string]interface{}{}, w)
+	}
+
+	token, err := parseTokenFromCookie(r)
+	helpers.HandleError(err)
+
+	res, err := github.SearchForRepos(token, searchQuery)
+	helpers.HandleError(err)
+	apiResponse(map[string]interface{}{"data": res}, w)
+}
+
+// Gets the github branches for the selected repo
+func getBranches(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	owner := vars["owner"]
+	repo := vars["repo"]
+	token, err := parseTokenFromCookie(r)
+	helpers.HandleError(err)
+
+	res, err := github.GetBranches(token, owner, repo)
+	helpers.HandleError(err)
+	apiResponse(map[string]interface{}{"data": res}, w)
+}
+
+// Gets the github commits for the selected repo
+func getCommits(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	owner := vars["owner"]
+	repo := vars["repo"]
+	token, err := parseTokenFromCookie(r)
+	helpers.HandleError(err)
+
+	res, err := github.GetCommits(token, owner, repo)
+	helpers.HandleError(err)
+	apiResponse(map[string]interface{}{"data": res}, w)
 }

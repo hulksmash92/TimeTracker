@@ -96,6 +96,37 @@ func CheckToken(token string) (*github.Authorization, error) {
 	return auth, nil
 }
 
+// Searches for repos that match the query
+func SearchForRepos(token, query string) (*github.RepositoriesSearchResult, error) {
+	client, ctx := getOauthClient(token)
+	res, _, err := client.Search.Repositories(ctx, query, nil)
+
+	if res == nil || err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// Gets the branches for the selected repo
+func GetBranches(token, owner, repo string) ([]*github.Branch, error) {
+	client, ctx := getOauthClient(token)
+	res, _, err := client.Repositories.ListBranches(ctx, owner, repo, nil)
+	if res == nil || err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// Gets the commits for the selected repo
+func GetCommits(token, owner, repo string) ([]*github.RepositoryCommit, error) {
+	client, ctx := getOauthClient(token)
+	res, _, err := client.Repositories.ListCommits(ctx, owner, repo, nil)
+	if res == nil || err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 // Gets a new github client with basic auth configured
 func getBasicAuthClient() (*github.Client, context.Context) {
 	ctx := context.Background()
