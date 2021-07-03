@@ -1,0 +1,23 @@
+<mat-form-field class="w-100">
+    <mat-label>Search for a repository</mat-label>
+    <input matInput
+           type="text"
+           [formControl]="searchFc"
+           [matMenuTriggerFor]="resultsMenu">
+    <mat-icon matSuffix>search</mat-icon>
+</mat-form-field>
+
+<mat-menu #resultsMenu="matMenu">
+    <ng-template matMenuContent>
+        <button *ngIf="!result || result.total === 0" mat-menu-item>
+            No results found
+        </button>
+        <ng-template #repoResults>
+            <button mat-menu-item 
+                    *ngFor="let item in result.items"
+                    (click)="repoSelected.emit(item)">
+                {{item.full_name}}
+            </button>
+        </ng-template>
+    </ng-template>
+</mat-menu>

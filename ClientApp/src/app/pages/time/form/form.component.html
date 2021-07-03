@@ -30,5 +30,13 @@
                 </mat-form-field>
             </div>
         </div>
+
+        <repo-search (repoSelected)="repo = $event;"></repo-search>
+
+        <repo-item-search *ngIf="!!repo"
+                          [repo]="repo"
+                          >
+        </repo-item-search>
+
     </form>
 </mat-card>

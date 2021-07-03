@@ -1,0 +1,34 @@
+<div class="d-flex align-item-center">
+    <mat-form-field class="flex-fill px-1">
+        <mat-label>Repo Item Type</mat-label>
+        <mat-select name="repoItemType" [formControl]="repoItemType">
+            <mat-option></mat-option>
+            <mat-option *ngFor="let item of repoItemTypes" [value]="item.name">{{item.label}}</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="flex-fill px-1" *ngIf="itemType === 'commit'">
+        <mat-label>Created Between</mat-label>
+        <mat-date-range-input [rangePicker]="dtRangePicker">
+            <input matStartDate placeholder="From" [formControl]="itemFrom">
+            <input matEndDate placeholder="To" [formControl]="itemTo">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="dtRangePicker"></mat-datepicker-toggle>
+        <mat-date-range-picker #dtRangePicker></mat-date-range-picker>
+    </mat-form-field>
+
+    <div class="p-1">
+        <button mat-flat-button
+                color="primary"
+                type="button"
+                (click)="getRepoItems()">
+            Search
+        </button>
+    </div>
+</div>
+
+<mat-selection-list>
+    <mat-list-option *ngFor="let item of repoItems" [value]="item">
+        {{ itemType === 'commit' ? item.name : item.message }}
+    </mat-list-option>
+</mat-selection-list>

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -105,7 +106,14 @@ type RepoSearchResult struct {
 // Searches for repos that match the query
 func SearchForRepos(token, query string) (*RepoSearchResult, error) {
 	client, ctx := getOauthClient(token)
-	res, _, err := client.Search.Repositories(ctx, query, nil)
+
+	opts := github.SearchOptions{
+		ListOptions: github.ListOptions{
+			Page:    0,
+			PerPage: 10,
+		},
+	}
+	res, _, err := client.Search.Repositories(ctx, query, &opts)
 
 	if res == nil || err != nil {
 		return nil, err
@@ -137,9 +145,15 @@ func GetBranches(token, owner, repo string) ([]*github.Branch, error) {
 }
 
 // Gets the commits for the selected repo
-func GetCommits(token, owner, repo string) ([]*github.RepositoryCommit, error) {
+func GetCommits(token, owner, repo string, from time.Time, to time.Time) ([]*github.RepositoryCommit, error) {
 	client, ctx := getOauthClient(token)
-	res, _, err := client.Repositories.ListCommits(ctx, owner, repo, nil)
+
+	opts := github.CommitsListOptions{
+		Since: from,
+		Until: to,
+	}
+
+	res, _, err := client.Repositories.ListCommits(ctx, owner, repo, &opts)
 	if res == nil || err != nil {
 		return nil, err
 	}

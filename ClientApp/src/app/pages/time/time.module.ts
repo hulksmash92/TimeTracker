@@ -7,12 +7,16 @@ import { FormComponent } from './form/form.component';
 import { TableComponent } from './table/table.component';
 import { TimeRoutingModule } from './time-routing.module';
 import { MaterialModule } from 'src/app/modules/material/material.module';
+import { RepoSearchComponent } from './components/repo-search/repo-search.component';
+import { RepoItemSearchComponent } from './components/repo-item-search/repo-item-search.component';
 
 @NgModule({
   declarations: [
     TimeComponent,
     FormComponent,
-    TableComponent
+    TableComponent,
+    RepoSearchComponent,
+    RepoItemSearchComponent
   ],
   imports: [
     CommonModule,

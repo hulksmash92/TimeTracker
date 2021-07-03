@@ -102,7 +102,7 @@ func getGitHubRepoItems(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	itemType := vars["itemType"]
 
-	if itemType == "branches" || itemType == "commits" {
+	if itemType == "branch" || itemType == "commit" {
 		owner := vars["owner"]
 		repo := vars["repo"]
 		token, err := parseTokenFromCookie(r)
@@ -110,13 +110,23 @@ func getGitHubRepoItems(w http.ResponseWriter, r *http.Request) {
 
 		var res interface{}
 
-		if itemType == "branches" {
+		if itemType == "branch" {
 			res, err = github.GetBranches(token, owner, repo)
+			helpers.HandleError(err)
 		} else {
-			res, err = github.GetCommits(token, owner, repo)
+			from, err := time.Parse(dtParamLayout, r.URL.Query().Get("from"))
+			if err != nil {
+				from = time.Now().AddDate(0, 0, -7)
+			}
+			to, err := time.Parse(dtParamLayout, r.URL.Query().Get("to"))
+			if err != nil {
+				to = time.Now()
+			}
+
+			res, err = github.GetCommits(token, owner, repo, from, to)
+			helpers.HandleError(err)
 		}
 
-		helpers.HandleError(err)
 		apiResponse(map[string]interface{}{"data": res}, w)
 	} else {
 		helpers.HandleError(errors.New("Invalid itemType param"))

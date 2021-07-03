@@ -31,10 +31,26 @@ export class RepoService {
     );
   }
 
-
-  getGitHubRepoItems(owner: string, repo: string, itemType: string): Observable<any[]> {
-    return this.http.get(`${this.GH_API_URL}/repo/${owner}/${repo}/${itemType}`).pipe(
-      map((res: any) => res.data)
+  /**
+   * Gets the repo items of the selected type for the selected the repository
+   * @param owner owner of the GitHub repo
+   * @param repo name of the GitHub repo
+   * @param itemType type of item to get i.e. branches or commits
+   * @param from date range to search from
+   * @param to date range to search until
+   * @returns a list of the repo items
+   */
+  getGitHubRepoItems(owner: string, repo: string, itemType: string, from?: Date, to?: Date): Observable<any[]> {
+    let params = new HttpParams();
+    if (!!from) {
+      params = params.append('from', from.toISOString());
+    }
+    if (!!to) {
+      params = params.append('to', to.toISOString());
+    }
+    
+    return this.http.get(`${this.GH_API_URL}/repo/${owner}/${repo}/${itemType}`, {params}).pipe(
+      map((res: any) => res.data || [])
     );
   }
 

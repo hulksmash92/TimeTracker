@@ -13,6 +13,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Layout to use for time.Time params
+var dtParamLayout = "2006-08-25T14:22:21.835Z"
+
 // Initialises the HTTP router and pipeline, then listen and serves application
 func ListenAndServe() {
 	router := configureRouter()

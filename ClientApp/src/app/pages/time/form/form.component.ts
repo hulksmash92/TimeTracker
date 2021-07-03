@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Tag } from 'src/app/models/tag';
+import { FormControl } from '@angular/forms';
 
+import { Tag } from 'src/app/models/tag';
+import { RepoService } from 'src/app/services/repo/repo.service';
 import { TimeService } from 'src/app/services/time/time.service';
 
 @Component({
@@ -9,10 +11,12 @@ import { TimeService } from 'src/app/services/time/time.service';
   styleUrls: ['./form.component.scss']
 })
 export class FormComponent implements OnInit {
-  tags: Tag[] = [];
   readonly valueTypes: string[] = ['Hours', 'Minutes', 'Units'];
+  tags: Tag[] = [];
+  repo: any;
+  
 
-  constructor(private readonly timeService: TimeService) { }
+  constructor(private readonly timeService: TimeService, private readonly repoService: RepoService) { }
 
   ngOnInit(): void {
     this.setTags();
