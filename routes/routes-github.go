@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -82,7 +83,7 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 }
 
 // Searches for github repos
-func searchRepos(w http.ResponseWriter, r *http.Request) {
+func searchGitHubRepos(w http.ResponseWriter, r *http.Request) {
 	searchQuery := r.URL.Query().Get("query")
 	if searchQuery == "" {
 		apiResponse(map[string]interface{}{}, w)
@@ -96,28 +97,28 @@ func searchRepos(w http.ResponseWriter, r *http.Request) {
 	apiResponse(map[string]interface{}{"data": res}, w)
 }
 
-// Gets the github branches for the selected repo
-func getBranches(w http.ResponseWriter, r *http.Request) {
+// Gets items that relate to a github repo
+func getGitHubRepoItems(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	owner := vars["owner"]
-	repo := vars["repo"]
-	token, err := parseTokenFromCookie(r)
-	helpers.HandleError(err)
+	itemType := vars["itemType"]
 
-	res, err := github.GetBranches(token, owner, repo)
-	helpers.HandleError(err)
-	apiResponse(map[string]interface{}{"data": res}, w)
-}
+	if itemType == "branches" || itemType == "commits" {
+		owner := vars["owner"]
+		repo := vars["repo"]
+		token, err := parseTokenFromCookie(r)
+		helpers.HandleError(err)
 
-// Gets the github commits for the selected repo
-func getCommits(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	owner := vars["owner"]
-	repo := vars["repo"]
-	token, err := parseTokenFromCookie(r)
-	helpers.HandleError(err)
+		var res interface{}
 
-	res, err := github.GetCommits(token, owner, repo)
-	helpers.HandleError(err)
-	apiResponse(map[string]interface{}{"data": res}, w)
+		if itemType == "branches" {
+			res, err = github.GetBranches(token, owner, repo)
+		} else {
+			res, err = github.GetCommits(token, owner, repo)
+		}
+
+		helpers.HandleError(err)
+		apiResponse(map[string]interface{}{"data": res}, w)
+	} else {
+		helpers.HandleError(errors.New("Invalid itemType param"))
+	}
 }

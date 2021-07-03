@@ -96,15 +96,34 @@ func CheckToken(token string) (*github.Authorization, error) {
 	return auth, nil
 }
 
+// Results of a repo search
+type RepoSearchResult struct {
+	Total int                  `json:"total"`
+	Items []*github.Repository `json:"items"`
+}
+
 // Searches for repos that match the query
-func SearchForRepos(token, query string) (*github.RepositoriesSearchResult, error) {
+func SearchForRepos(token, query string) (*RepoSearchResult, error) {
 	client, ctx := getOauthClient(token)
 	res, _, err := client.Search.Repositories(ctx, query, nil)
 
 	if res == nil || err != nil {
 		return nil, err
 	}
-	return res, nil
+
+	result := RepoSearchResult{
+		Total: 0,
+		Items: []*github.Repository{},
+	}
+
+	if res.Total != nil {
+		result.Total = *res.Total
+	}
+	if res.Repositories != nil {
+		result.Items = res.Repositories
+	}
+
+	return &result, nil
 }
 
 // Gets the branches for the selected repo
