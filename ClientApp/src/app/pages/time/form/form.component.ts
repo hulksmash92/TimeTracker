@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { RepoItem } from 'src/app/models/repo-item';
 
 import { Tag } from 'src/app/models/tag';
-import { RepoService } from 'src/app/services/repo/repo.service';
 import { TimeService } from 'src/app/services/time/time.service';
 
 @Component({
@@ -12,21 +12,36 @@ import { TimeService } from 'src/app/services/time/time.service';
 })
 export class FormComponent implements OnInit {
   readonly valueTypes: string[] = ['Hours', 'Minutes', 'Units'];
-  tags: Tag[] = [];
+  tagOptions: Tag[] = [];
   repo: any;
-  
+  repoItems: RepoItem[] = [];
+  selectedTags: Tag[] = [];
 
-  constructor(private readonly timeService: TimeService, private readonly repoService: RepoService) { }
+  formGroup: FormGroup = new FormGroup({
+    comments: new FormControl(null, [Validators.required]),
+    value: new FormControl(null, [Validators.required]),
+    valueType: new FormControl('Hours', [Validators.required]),
+  });
+
+  constructor(private readonly timeService: TimeService) { }
 
   ngOnInit(): void {
-    this.setTags();
+    this.setTagOptions();
   }
 
-  setTags(): void {
+  setTagOptions(): void {
     this.timeService.getTags()
       .subscribe((res: Tag[]) => {
-        this.tags = res || [];
+        this.tagOptions = res || [];
       });
+  }
+
+  setRepoItems(items: RepoItem[]): void {
+    items = items.filter(i => {
+      const index = this.repoItems.findIndex(r => r.itemIdSource === i.itemIdSource && r.itemType === i.itemType);
+      return index === -1;
+    });
+    this.repoItems.push(...items);
   }
 
   submit(): void {

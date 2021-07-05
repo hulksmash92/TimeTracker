@@ -3,7 +3,8 @@
     <input matInput
            type="text"
            [formControl]="searchFc"
-           [matMenuTriggerFor]="resultsMenu">
+           [matMenuTriggerFor]="resultsMenu"
+           (keyup.enter)="search()">
     <mat-icon matSuffix>search</mat-icon>
 </mat-form-field>
 

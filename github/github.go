@@ -21,7 +21,7 @@ func LoginUrl() (string, error) {
 	clientId := getClientID()
 	scopes := os.Getenv("GITHUB_SCOPES")
 	if scopes == "" {
-		scopes = "user:email"
+		scopes = "user:email repo"
 	}
 	loginUrl := os.Getenv("GITHUB_URL_LOGIN")
 
@@ -30,7 +30,7 @@ func LoginUrl() (string, error) {
 	}
 
 	// Build the final URL
-	url := loginUrl + "?scopes=" + scopes + "&client_id=" + clientId
+	url := loginUrl + "?client_id=" + clientId + "&scope=" + scopes
 
 	return url, nil
 }
@@ -75,7 +75,7 @@ func GetAccessToken(sessionCode string) (string, error) {
 		return token, errors.New(tokenErr)
 	}
 
-	if !helpers.StrArrayContains(tokenResData["scope"], "user:email") {
+	if !helpers.StrArrayContains(tokenResData["scope"], "repo,user:email") {
 		return token, errors.New("Invalid token scopes")
 	}
 
@@ -106,15 +106,7 @@ type RepoSearchResult struct {
 // Searches for repos that match the query
 func SearchForRepos(token, query string) (*RepoSearchResult, error) {
 	client, ctx := getOauthClient(token)
-
-	opts := github.SearchOptions{
-		ListOptions: github.ListOptions{
-			Page:    0,
-			PerPage: 10,
-		},
-	}
-	res, _, err := client.Search.Repositories(ctx, query, &opts)
-
+	res, _, err := client.Search.Repositories(ctx, query, nil)
 	if res == nil || err != nil {
 		return nil, err
 	}

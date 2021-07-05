@@ -23,17 +23,6 @@ export class RepoSearchComponent implements OnInit, OnDestroy {
   constructor(private readonly repoService: RepoService) { }
 
   ngOnInit(): void {
-    this.searchSub = this.searchFc.valueChanges.pipe(
-      distinctUntilChanged(),
-      debounceTime(500)
-    ).subscribe({
-      next: (value: string) => {
-        if (value.length > 4) {
-          this.search(value);
-        }
-      }
-    });
-
     this.matMenuTrigger.menuOpened.subscribe({
       next: () => {
         const searchValue: string = this.searchFc.value || '';
@@ -49,7 +38,12 @@ export class RepoSearchComponent implements OnInit, OnDestroy {
     this.matMenuTrigger.closeMenu();
   }
 
-  search(query: string): void {
+  search(): void {
+    const query: string = (this.searchFc.value || '').trim();
+    if (query.length <= 3) {
+      return;
+    }
+
     this.repoService.searchGitHub(query)
       .subscribe((res: RepoSearchResult) => {
         this.result = res;

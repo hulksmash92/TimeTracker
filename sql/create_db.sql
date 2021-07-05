@@ -1,20 +1,12 @@
---CREATE DATABASE timetracker;
-
+-- Create the timetracker DB and switch to that db onto the public schema
+CREATE DATABASE IF NOT EXISTS timetracker;
 SET SEARCH_PATH TO timetracker;
-
 SET SEARCH_PATH TO public;
+
+-- Add the UUID extension to our DB
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-DROP TABLE IF EXISTS public.tbl_UserOrgLink;
-DROP TABLE IF EXISTS public.tbl_TimeEntryTagLink;
-DROP TABLE IF EXISTS public.tbl_Tag;
-DROP TABLE IF EXISTS public.tbl_RepoItem;
-DROP TABLE IF EXISTS public.tbl_TimeEntry;
-DROP TABLE IF EXISTS public.tbl_ApiClient;
-DROP TABLE IF EXISTS public.tbl_Organisation;
-DROP TABLE IF EXISTS public.tbl_User;
-
-CREATE TABLE public.tbl_User(
+CREATE TABLE IF NOT EXISTS public.tbl_User(
     id SERIAL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     email VARCHAR(400),
@@ -24,10 +16,13 @@ CREATE TABLE public.tbl_User(
     avatar TEXT
 );
 
-CREATE INDEX IX_user_githubUserId ON public.tbl_User (githubuserid);
-CREATE INDEX IX_user_email ON public.tbl_User (email);
+-- Add an index to the user table on the githubUserId column as 
+-- we will be commonly querying on this column, 
+-- for example checking if a user exists in the db after 
+-- they've authenticated using GitHub OAuth
+CREATE INDEX IF NOT EXISTS IX_user_githubUserId ON public.tbl_User (githubuserid);
 
-CREATE TABLE public.tbl_Organisation(
+CREATE TABLE IF NOT EXISTS public.tbl_Organisation(
     id SERIAL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     description varchar(500),
@@ -37,41 +32,42 @@ CREATE TABLE public.tbl_Organisation(
     updated TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE public.tbl_UserOrgLink(
+-- Create a link table for linking User <-> Organisation
+-- Note: users can be members of multiple organisations, 
+--       so they may multiple org links in this table
+CREATE TABLE IF NOT EXISTS public.tbl_UserOrgLink(
     organisationId INT,
-    userId INT
-);
-
-ALTER TABLE public.tbl_UserOrgLink
-    ADD CONSTRAINT FK_UserOrgLink_OrganisationId 
+    userId INT,
+    CONSTRAINT FK_UserOrgLink_OrganisationId 
         FOREIGN KEY (organisationId)
         REFERENCES public.tbl_Organisation (id)
-        ON DELETE CASCADE;
-
-ALTER TABLE public.tbl_UserOrgLink
-    ADD CONSTRAINT FK_UserOrgLink_UserId 
+        ON DELETE CASCADE,
+    CONSTRAINT FK_UserOrgLink_UserId 
         FOREIGN KEY (userId)
         REFERENCES public.tbl_User (id)
-        ON DELETE CASCADE;
+        ON DELETE CASCADE
+);
 
-CREATE TABLE public.tbl_ApiClient(
+-- This table will likely be used in later phases of the application to
+-- allow user's to create credentials for daemon applications that may 
+-- extract user data using the API.
+CREATE TABLE IF NOT EXISTS public.tbl_ApiClient(
     clientId UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
     userId INT,
-    secretKey UUID,
+    secretKey VARCHAR(200),
     appName VARCHAR(50) NOT NULL,
     description VARCHAR(500),
     validTill TIMESTAMP,
     created TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated TIMESTAMP NOT NULL DEFAULT NOW()
+    updated TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT FK_ApiClient_UserId 
+        FOREIGN KEY (userId)
+        REFERENCES public.tbl_User (id)
+        ON DELETE CASCADE
 );
 
-ALTER TABLE public.tbl_ApiClient
-    ADD CONSTRAINT FK_ApiClient_UserId
-    FOREIGN KEY (userId)
-    REFERENCES public.tbl_User (id)
-    ON DELETE CASCADE;
 
-CREATE TABLE public.tbl_TimeEntry(
+CREATE TABLE IF NOT EXISTS public.tbl_TimeEntry(
     id BIGSERIAL PRIMARY KEY,
     comments VARCHAR(200),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -79,23 +75,19 @@ CREATE TABLE public.tbl_TimeEntry(
     value NUMERIC NOT NULL,
     valueType varchar(20) NOT NULL,
     userId INT,
-    organisationId INT
+    organisationId INT,
+    CONSTRAINT FK_TimeEntry_OrganisationId 
+        FOREIGN KEY (organisationId)
+        REFERENCES public.tbl_Organisation (id),
+    CONSTRAINT FK_TimeEntry_UserId 
+        FOREIGN KEY (userId)
+        REFERENCES public.tbl_User (id)
 );
 
-CREATE INDEX IX_timeentry_created ON public.tbl_TimeEntry (created);
-CREATE INDEX IX_timeentry_updated ON public.tbl_TimeEntry (updated);
+CREATE INDEX IF NOT EXISTS IX_timeentry_created ON public.tbl_TimeEntry (created);
+CREATE INDEX IF NOT EXISTS IX_timeentry_updated ON public.tbl_TimeEntry (updated);
 
-ALTER TABLE public.tbl_TimeEntry
-    ADD CONSTRAINT FK_TimeEntry_OrganisationId 
-        FOREIGN KEY (organisationId)
-        REFERENCES public.tbl_Organisation (id);
-
-ALTER TABLE public.tbl_TimeEntry
-    ADD CONSTRAINT FK_TimeEntry_UserId 
-        FOREIGN KEY (userId)
-        REFERENCES public.tbl_User (id);
-
-CREATE TABLE public.tbl_RepoItem(
+CREATE IF NOT EXISTS TABLE public.tbl_RepoItem(
     id BIGSERIAL PRIMARY KEY,
     itemIdSource VARCHAR(200) NOT NULL,
     itemType VARCHAR(50) NOT NULL,
@@ -104,35 +96,43 @@ CREATE TABLE public.tbl_RepoItem(
     updated TIMESTAMP NOT NULL DEFAULT NOW(),
     repoName VARCHAR(200) NOT NULL,
     description VARCHAR(2000),
-    timeEntryId BIGINT
-);
-
-CREATE INDEX IX_repoitem_source ON tbl_RepoItem (source);
-
-ALTER TABLE public.tbl_RepoItem
-    ADD CONSTRAINT FK_RepoItem_TimeEntryId 
+    timeEntryId BIGINT,
+    CONSTRAINT FK_RepoItem_TimeEntryId 
         FOREIGN KEY (timeEntryId)
         REFERENCES public.tbl_TimeEntry (id)
-        ON DELETE CASCADE;
+        ON DELETE CASCADE
+);
 
-CREATE TABLE public.tbl_Tag(
+CREATE INDEX IF NOT EXISTS IX_repoitem_source ON tbl_RepoItem (source);
+
+CREATE TABLE IF NOT EXISTS public.tbl_Tag(
     id SERIAL PRIMARY KEY,
-    name varchar(50)
+    name varchar(50),
+    userId INT,
+    CONSTRAINT FK_Tag_UserId
+        FOREIGN KEY (userId)
+        REFERENCES public.tbl_User (id)
 );
 
-CREATE TABLE public.tbl_TimeEntryTagLink(
+-- links our tags to the time entries
+CREATE TABLE IF NOT EXISTS public.tbl_TimeEntryTagLink(
     tagId INT,
-    timeEntryId BIGINT
-);
-
-ALTER TABLE public.tbl_TimeEntryTagLink
-    ADD CONSTRAINT FK_TimeEntryTagLink_TagId 
+    timeEntryId BIGINT,
+    CONSTRAINT FK_TimeEntryTagLink_TagId 
         FOREIGN KEY (tagId)
         REFERENCES public.tbl_Tag (id)
-        ON DELETE CASCADE;
-
-ALTER TABLE public.tbl_TimeEntryTagLink
-    ADD CONSTRAINT FK_TimeEntryTagLink_TimeEntryId 
+        ON DELETE CASCADE,
+    CONSTRAINT FK_TimeEntryTagLink_TimeEntryId 
         FOREIGN KEY (timeEntryId)
         REFERENCES public.tbl_TimeEntry (id)
-        ON DELETE CASCADE;
+        ON DELETE CASCADE
+);
+
+-- Add some global tags for time entries
+INSERT INTO public.tbl_Tag (name)
+VALUES ('Feature')
+    , ('Testing')
+    , ('Design')
+    , ('Proof of concept')
+    , ('Bug Fix')
+    , ('Research')

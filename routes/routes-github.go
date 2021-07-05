@@ -50,21 +50,19 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 	//    or get the existing users details
 
 	var user models.User
-
 	if !db.GitHubUserExists(*ct.User.Login) {
-		fmt.Printf("Github user %s does not exist in the db", *ct.User.Login)
 		user = db.CreateUser(*ct.User)
-		fmt.Printf("User created for %s in the db", *ct.User.Login)
 	} else {
 		user = db.GetUserByGitHubLogin(*ct.User.Login)
 	}
 
 	// 2: Set a cookie containing the user's token
 	//    that we can use for future request
+	cookieName := "LoginData"
 	isDev := os.Getenv("HOSTING_ENV") == "Development"
 	expires := 30 * 24 * time.Hour
 	cookie := &http.Cookie{
-		Name:     "LoginData",
+		Name:     cookieName,
 		Value:    token,
 		Path:     "/",
 		Expires:  time.Now().Add(expires),
@@ -87,6 +85,10 @@ func searchGitHubRepos(w http.ResponseWriter, r *http.Request) {
 	searchQuery := r.URL.Query().Get("query")
 	if searchQuery == "" {
 		apiResponse(map[string]interface{}{}, w)
+	}
+
+	for _, c := range r.Cookies() {
+		fmt.Println(c)
 	}
 
 	token, err := parseTokenFromCookie(r)
