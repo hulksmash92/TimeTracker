@@ -10,7 +10,7 @@ func GetTags() []models.Tag {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
-	rows, err := dbConn.Query("SELECT * FROM tbl_tag")
+	rows, err := dbConn.Query("SELECT id, name FROM tbl_tag")
 	helpers.HandleError(err)
 	defer rows.Close()
 

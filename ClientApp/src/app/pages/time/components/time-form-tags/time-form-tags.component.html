@@ -1,5 +1,6 @@
 <mat-form-field class="w-100" appearance="outline">
     <mat-label>Tags</mat-label>
+
     <mat-chip-list #tagChipList aria-label="Tag selection">
         <mat-chip *ngFor="let tag of selectedTags"
                   color="accent"
@@ -11,19 +12,17 @@
         </mat-chip>
 
         <input #tagInput 
-                matInput 
-                type="text"
-                aria-label="Tag"
+                placeholder="Tag"
                 [formControl]="tagFc"
                 [matAutocomplete]="tagAuto"
                 [matChipInputFor]="tagChipList"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 (matChipInputTokenEnd)="addTag($event)">
     </mat-chip-list>
-    <mat-autocomplete #tagAuto="matAutocomplete">
-        <mat-option *ngIf="let option of filteredTags | async" 
-                    [value]="option.name">
-            {{option.name}}
+
+    <mat-autocomplete #tagAuto="matAutocomplete" (optionSelected)="autocompleteOptionSelect($event)">
+        <mat-option *ngFor="let tag of filteredTags" [value]="tag">
+            {{tag.name}}
         </mat-option>
     </mat-autocomplete>
 </mat-form-field>
