@@ -16,7 +16,8 @@ import (
 	"github.com/google/go-github/v35/github"
 )
 
-// Gets the URL this application uses to log user's into the app using their GitHub creds
+// Constructs the URL this application uses to log user's into the app
+// using their GitHub credentials
 func LoginUrl() (string, error) {
 	clientId := getClientID()
 	scopes := os.Getenv("GITHUB_SCOPES")
@@ -31,7 +32,6 @@ func LoginUrl() (string, error) {
 
 	// Build the final URL
 	url := loginUrl + "?client_id=" + clientId + "&scope=" + scopes
-
 	return url, nil
 }
 
@@ -97,30 +97,31 @@ func CheckToken(token string) (*github.Authorization, error) {
 	return auth, nil
 }
 
-// Results of a repo search
 type RepoSearchResult struct {
-	Total int                  `json:"total"`
-	Items []*github.Repository `json:"items"`
+	FullName string `json:"fullname"`
+	Name     string `json:"name"`
+	Owner    string `json:"owner"`
 }
 
 // Searches for repos that match the query
-func SearchForRepos(token, query string) (*RepoSearchResult, error) {
+func SearchForRepos(token, query string) (*[]RepoSearchResult, error) {
 	client, ctx := getOauthClient(token)
 	res, _, err := client.Search.Repositories(ctx, query, nil)
 	if res == nil || err != nil {
 		return nil, err
 	}
 
-	result := RepoSearchResult{
-		Total: 0,
-		Items: []*github.Repository{},
-	}
+	result := []RepoSearchResult{}
 
-	if res.Total != nil {
-		result.Total = *res.Total
-	}
 	if res.Repositories != nil {
-		result.Items = res.Repositories
+		for _, r := range res.Repositories {
+			item := RepoSearchResult{
+				FullName: *r.FullName,
+				Name:     *r.Name,
+				Owner:    *r.Owner.Login,
+			}
+			result = append(result, item)
+		}
 	}
 
 	return &result, nil

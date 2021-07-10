@@ -1,8 +1,9 @@
-import { Component, EventEmitter, OnInit, Output, OnDestroy, ViewChild, Input } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatListOption, MatSelectionList, MatSelectionListChange } from '@angular/material/list';
 
 import { RepoItem } from 'src/app/models/repo-item';
+import { RepoSearchResult } from 'src/app/models/repos';
 import { RepoService } from 'src/app/services/repo/repo.service';
 
 export interface RepoItemType {
@@ -16,7 +17,7 @@ export interface RepoItemType {
   styleUrls: ['./repo-item-search.component.scss']
 })
 export class RepoItemSearchComponent {
-  @Input() repo: any;
+  @Input() repo: RepoSearchResult;
   @Input() source: string = 'GitHub';
   @Output() repoItemsSelected: EventEmitter<RepoItem[]> = new EventEmitter<RepoItem[]>();
   @ViewChild(MatSelectionList, { static: true }) matSelectionList: MatSelectionList;
@@ -37,12 +38,10 @@ export class RepoItemSearchComponent {
 
   getRepoItems(): void {
     if (!!this.repo && !!this.itemType) {
-      const owner: string = this.repo.owner.login;
-      const repoName: string = this.repo.name;
       const from: Date = this.itemFrom.value;
       const to: Date = this.itemFrom.value;
 
-      this.repoService.getGitHubRepoItems(owner, repoName, this.itemType, from, to)
+      this.repoService.getGitHubRepoItems(this.repo.owner, this.repo.name, this.itemType, from, to)
         .subscribe((res: any[]) => {
           this.repoItems = res;
         });
@@ -79,7 +78,7 @@ export class RepoItemSearchComponent {
       itemType,
       description,
       source: this.source,
-      repoName: this.repo.full_name
+      repoName: this.repo.fullName
     };
     return newRepoItem;
   }

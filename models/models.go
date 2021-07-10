@@ -8,7 +8,7 @@ import (
 
 type ApiClient struct {
 	ClientId    uuid.UUID `json:"clientId"`
-	SecretKey   uuid.UUID `json:"secretKey"`
+	SecretKey   string    `json:"secretKey"`
 	AppName     string    `json:"appName"`
 	Description string    `json:"description"`
 	ValidTill   time.Time `json:"validTill"`

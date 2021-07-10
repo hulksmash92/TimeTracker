@@ -123,7 +123,7 @@ func isLoggedIn(r *http.Request) bool {
 // Parses the login token from the LoginData HTTP cookie if it exists
 func parseTokenFromCookie(r *http.Request) (string, error) {
 	var token string
-	cookie, err := r.Cookie("LoginData")
+	cookie, err := r.Cookie(tokenCookieName)
 	if err != nil {
 		return token, err
 	}

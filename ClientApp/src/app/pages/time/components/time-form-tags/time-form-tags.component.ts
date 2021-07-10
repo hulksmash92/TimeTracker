@@ -24,14 +24,13 @@ export class TimeFormTagsComponent {
 
   constructor() {
     this.filteredTags = this.tagFc.valueChanges.pipe(
-      map((v: string) => !!v ? this.filterTags(v) : this.autocompleteTags.slice())
+      map((v: string) => !!v ? this.filterTags(v) : (this.autocompleteTags || []).slice())
     );
   }
 
   filterTags(value: string): Tag[] {
     const filterVal = (value || '').toLowerCase();
-    return this.autocompleteTags
-      .filter(t => t.name.toLowerCase().includes(filterVal));
+    return (this.autocompleteTags || []).filter(t => t.name.toLowerCase().includes(filterVal));
   }
 
   /**

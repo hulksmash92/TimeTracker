@@ -38,14 +38,14 @@ CREATE OR REPLACE PROCEDURE sp_time_insert (
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF arg_user_id == 0 THEN
-        arg_user_id = NULL;
+    IF arg_user_id = 0 THEN
+        arg_user_id := NULL;
     END IF;
-    IF arg_org_id == 0 THEN
-        arg_org_id = NULL;
+    IF arg_org_id = 0 THEN
+        arg_org_id := NULL;
     END IF;
-    IF arg_comments == '' THEN
-        arg_comments = NULL;
+    IF arg_comments = '' THEN
+        arg_comments := NULL;
     END IF;
 
     INSERT INTO tbl_timeentry (
@@ -82,7 +82,7 @@ AS $$
 BEGIN
     SELECT id INTO tag_id FROM tbl_tag WHERE name = tag_name;
 
-    IF tag_id == 0 OR tag_id IS NULL THEN
+    IF tag_id = 0 OR tag_id IS NULL THEN
         INSERT INTO tbl_tag (name)
         VALUES (tag_name)
         RETURNING id INTO tag_id;

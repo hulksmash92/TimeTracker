@@ -1,4 +1,4 @@
-<mat-form-field class="w-100" appearance="fill">
+<mat-form-field class="w-100" appearance="outline">
     <mat-label>Tags</mat-label>
     <mat-chip-list #tagChipList aria-label="Tag selection">
         <mat-chip *ngFor="let tag of selectedTags"
@@ -21,7 +21,7 @@
                 (matChipInputTokenEnd)="addTag($event)">
     </mat-chip-list>
     <mat-autocomplete #tagAuto="matAutocomplete">
-        <mat-option *ngIf="let option of filterTags | async" 
+        <mat-option *ngIf="let option of filteredTags | async" 
                     [value]="option.name">
             {{option.name}}
         </mat-option>

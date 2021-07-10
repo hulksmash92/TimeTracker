@@ -1,5 +1,5 @@
 export interface RepoSearchResult {
-    total: number;
-    incompleteResults: boolean;
-    items: any[];
+    fullName: string;
+    name: string;
+    owner: string;
 }

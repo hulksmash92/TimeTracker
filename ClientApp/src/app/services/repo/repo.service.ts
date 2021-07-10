@@ -1,9 +1,10 @@
-import { RepoSearchResult } from './../../models/repos';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { of, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+
+import { RepoSearchResult } from 'src/app/models/repos';
 
 
 @Injectable({
@@ -19,7 +20,7 @@ export class RepoService {
    * @param query repository search query, for example search by name
    * @returns a list of repos for the search query
    */
-  searchGitHub(query: string): Observable<RepoSearchResult> {
+  searchGitHub(query: string): Observable<RepoSearchResult[]> {
     if (!query) {
       return of(null);
     }
@@ -27,7 +28,7 @@ export class RepoService {
     params = params.append('query', query);
 
     return this.http.get(`${this.GH_API_URL}/search`, {params}).pipe(
-      map((res: any) => res.data)
+      map((res: any) => res.data || [])
     );
   }
 

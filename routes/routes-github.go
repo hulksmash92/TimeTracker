@@ -15,9 +15,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Defines the structure of the access token request body
+// Structure of the access token request body
 type GHTokenReqBody struct {
-	SessionCode string `json:sessionCode`
+	// Code returned in the redirect URL after a user
+	// has logged in with GitHub
+	SessionCode string `json:"sessionCode"`
 }
 
 // Gets the github URL for logging into this app with GitHub
@@ -58,11 +60,10 @@ func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
 
 	// 2: Set a cookie containing the user's token
 	//    that we can use for future request
-	cookieName := "LoginData"
 	isDev := os.Getenv("HOSTING_ENV") == "Development"
 	expires := 30 * 24 * time.Hour
 	cookie := &http.Cookie{
-		Name:     cookieName,
+		Name:     tokenCookieName,
 		Value:    token,
 		Path:     "/",
 		Expires:  time.Now().Add(expires),

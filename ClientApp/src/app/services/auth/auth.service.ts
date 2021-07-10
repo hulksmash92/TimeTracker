@@ -36,7 +36,8 @@ export class AuthService {
         this.router.navigate(['']);
       }
       return success;
-    });
+    })
+    .catch(() => false);
   }
 
   /**

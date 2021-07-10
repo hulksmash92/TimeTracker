@@ -3,7 +3,6 @@ import { FormControl } from '@angular/forms';
 import { MatMenuTrigger } from '@angular/material/menu';
 
 import { Subscription } from 'rxjs';
-import { distinctUntilChanged, debounceTime } from 'rxjs/operators';
 
 import { RepoSearchResult } from 'src/app/models/repos';
 import { RepoService } from 'src/app/services/repo/repo.service';
@@ -18,7 +17,7 @@ export class RepoSearchComponent implements OnInit, OnDestroy {
   @ViewChild(MatMenuTrigger, {static: true}) matMenuTrigger: MatMenuTrigger;
   private searchSub: Subscription = new Subscription();
   searchFc: FormControl = new FormControl();
-  result: RepoSearchResult;
+  result: RepoSearchResult[] = [];
 
   constructor(private readonly repoService: RepoService) { }
 
@@ -45,8 +44,8 @@ export class RepoSearchComponent implements OnInit, OnDestroy {
     }
 
     this.repoService.searchGitHub(query)
-      .subscribe((res: RepoSearchResult) => {
-        this.result = res;
+      .subscribe((res: RepoSearchResult[]) => {
+        this.result = res || [];
         this.matMenuTrigger.openMenu();
       });
   }

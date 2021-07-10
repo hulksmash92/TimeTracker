@@ -13,8 +13,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Layout to use for time.Time params
-var dtParamLayout = "2006-08-25T14:22:21.835Z"
+var (
+	// Layout to use for time.Time params
+	dtParamLayout = "2006-08-25T14:22:21.835Z"
+
+	// Name of the token cookie
+	tokenCookieName = "LoginData"
+)
 
 // Initialises the HTTP router and pipeline, then listen and serves application
 func ListenAndServe() {
