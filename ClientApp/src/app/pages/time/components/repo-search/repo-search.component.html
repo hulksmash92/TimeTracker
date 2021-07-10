@@ -1,26 +1,30 @@
-<mat-form-field class="w-100" appearance="outline">
-    <mat-label>Search for a repository</mat-label>
-    <input matInput
-           type="text"
-           [formControl]="searchFc"
-           [matMenuTriggerFor]="resultsMenu"
-           (keyup.enter)="search()">
+<div class="d-flex">
+    <mat-form-field class="flex-fill" appearance="outline">
+        <mat-label>Search for a repository</mat-label>
+        <input matInput
+               type="text"
+               [formControl]="searchFc"
+               [matMenuTriggerFor]="resultsMenu">
+    </mat-form-field>
 
-    <button mat-icon-button 
-            role="button" 
-            matSuffix 
-            (click)="search()">
-        <mat-icon>search</mat-icon>
-    </button>
-</mat-form-field>
+    <span class="search-btn-wrapper">
+        <button mat-flat-button 
+                role="button"
+                color="primary"
+                [disabled]="!this.searchFc.valid"
+                (click)="search()">
+            <mat-icon>search</mat-icon> Search
+        </button>
+    </span>
+</div>
 
 <mat-menu #resultsMenu="matMenu">
     <ng-template matMenuContent>
-        <button mat-menu-item *ngIf="result.length === 0">No results found</button>
+        <button mat-menu-item *ngIf="result?.length === 0">No results found</button>
         <button *ngFor="let item of result"
                 mat-menu-item
                 (click)="repoSelected.emit(item)">
-            {{item.fullName}}
+            {{item.fullName || item.name}}
         </button>
     </ng-template>
 </mat-menu>

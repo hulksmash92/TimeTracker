@@ -98,7 +98,7 @@ func CheckToken(token string) (*github.Authorization, error) {
 }
 
 type RepoSearchResult struct {
-	FullName string `json:"fullname"`
+	FullName string `json:"fullName"`
 	Name     string `json:"name"`
 	Owner    string `json:"owner"`
 }

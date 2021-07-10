@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { RepoItem } from 'src/app/models/repo-item';
 
@@ -11,6 +11,7 @@ import { TimeService } from 'src/app/services/time/time.service';
   styleUrls: ['./form.component.scss']
 })
 export class FormComponent implements OnInit {
+  @Output() cancel: EventEmitter<void> = new EventEmitter<void>();
   readonly valueTypes: string[] = ['Hours', 'Minutes', 'Units'];
   tagOptions: Tag[] = [];
   repo: any;
@@ -45,7 +46,17 @@ export class FormComponent implements OnInit {
   }
 
   submit(): void {
+    if (this.formGroup.valid) {
 
+    }
+  }
+
+  resetForm(): void {
+    this.formGroup.reset({ 
+      comments: null, 
+      value: null,
+      valueType: 'Hours'
+    });
   }
 
 }

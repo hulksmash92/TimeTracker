@@ -123,4 +123,9 @@ export class TimeComponent implements OnInit, OnDestroy {
     }
   }
 
+  resetView(): void {
+    this.showForm = false;
+    this.editing = null;
+  }
+
 }

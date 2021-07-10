@@ -1,4 +1,8 @@
-<div class="d-flex align-item-center">
+<div class="p-2">
+    Repository: {{ repo.fullName }}
+</div>
+
+<div class="d-flex">
     <mat-form-field class="flex-fill px-1" appearance="outline">
         <mat-label>Repo Item Type</mat-label>
         <mat-select name="repoItemType" [formControl]="repoItemType">
@@ -17,18 +21,19 @@
         <mat-date-range-picker #dtRangePicker></mat-date-range-picker>
     </mat-form-field>
 
-    <div class="p-1">
+    <span class="search-btn-wrapper">
         <button mat-flat-button
                 color="primary"
                 type="button"
+                [disabled]="searchBtnDisabled"
                 (click)="getRepoItems()">
-            Search
+            <mat-icon>search</mat-icon> Search
         </button>
-    </div>
+    </span>
 </div>
 
 <mat-selection-list>
     <mat-list-option *ngFor="let item of repoItems" [value]="item">
-        {{ itemType === 'commit' ? item.name : item.message }}
+        {{ itemType === 'commit' ? item.message : item.name }}
     </mat-list-option>
 </mat-selection-list>

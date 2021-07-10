@@ -18,7 +18,7 @@ func GetTags() []models.Tag {
 
 	for rows.Next() {
 		var t models.Tag
-		rows.Scan(&t)
+		rows.Scan(&t.Id, &t.Name)
 		tags = append(tags, t)
 	}
 

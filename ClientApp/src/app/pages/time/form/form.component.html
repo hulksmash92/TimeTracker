@@ -2,6 +2,19 @@
     <form #f="ngForm" [formGroup]="formGroup" (ngSubmit)="submit()">
         <h1 class="mat-h1">New Time Entry</h1>
         
+        <repo-search (repoSelected)="repo = $event;"></repo-search>
+
+        <repo-item-search *ngIf="!!repo"
+                          [repo]="repo"
+                          (repoItemsSelected)="setRepoItems($event)">
+        </repo-item-search>
+
+        <time-form-tags [autocompleteTags]="tagOptions"
+                        [selectedTags]="selectedTags"
+                        (tagAdded)="selectedTags.push($event)"
+                        (selectedTagsChanged)="selectedTags = $event">
+        </time-form-tags>
+
         <mat-form-field class="w-100" appearance="outline">
             <mat-label>Comments</mat-label>
             <textarea matInput
@@ -40,18 +53,31 @@
             </div>
         </div>
 
-        <time-form-tags [autocompleteTags]="tagOptions"
-                        [selectedTags]="selectedTags"
-                        (tagAdded)="selectedTags.push($event)"
-                        (selectedTagsChanged)="selectedTags = $event">
-        </time-form-tags>
+        <div class="time-form-actions">
+            <button mat-raised-button
+                    color="primary"
+                    type="submit"
+                    class="me-2"
+                    [disabled]="this.formGroup.invalid">
+                Submit
+            </button>
 
-        <repo-search (repoSelected)="repo = $event;"></repo-search>
+            <button mat-raised-button
+                    color="primary"
+                    type="accent"
+                    class="mx-2"
+                    [disabled]="this.formGroup.untouched"
+                    (click)="resetForm()">
+                Reset
+            </button>
 
-        <repo-item-search *ngIf="!!repo"
-                          [repo]="repo"
-                          (repoItemsSelected)="setRepoItems($event)">
-        </repo-item-search>
-
+            <button mat-raised-button
+                    color="warn"
+                    type="button"
+                    class="mx-2"
+                    (click)="cancel.emit()">
+                Cancel
+            </button>
+        </div>
     </form>
 </mat-card>

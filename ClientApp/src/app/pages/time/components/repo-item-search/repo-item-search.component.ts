@@ -34,6 +34,17 @@ export class RepoItemSearchComponent {
     return this.repoItemType.value;
   }
 
+  get searchBtnDisabled(): boolean {
+    return !this.itemType
+      || (
+        this.itemType === 'commit' 
+        && (
+          !!this.itemFrom.value
+          || !!this.itemTo.value
+        )
+      );
+  }
+
   constructor(private readonly repoService: RepoService) { }
 
   getRepoItems(): void {
