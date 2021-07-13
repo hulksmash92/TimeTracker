@@ -17,31 +17,60 @@ type UpdatedTimeEntry struct {
 }
 
 // Gets all time entries for a user and the given date range
+// TODO: Add server side pagination and sorting to improve speeds as data scales
 func GetTimeEntries(userId uint, dateFrom time.Time, dateTo time.Time) []models.TimeEntry {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
+	// Create our parameterised SQL query using our vw_time_entries view
 	query := `
-		SELECT *
+		SELECT id, created, updated, value, valueType, comments, 
+			userId, username, userAvatar, organisationId,
+			organisation, organisationAvatar
 		FROM vw_time_entries AS t
 		WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3
 		ORDER BY created DESC;
 	`
+	// Query the db with the above statement and handle any returned errors
 	rows, err := dbConn.Query(query, userId, dateFrom, dateTo)
 	helpers.HandleError(err)
+
+	// defer closing the sql.Rows cursor until the function has finished
 	defer rows.Close()
+
+	// Array of our time entries that will be returned
 	time := []models.TimeEntry{}
 
+	// Loop through each data row returned and parse it into a time entry
 	for rows.Next() {
-		var t models.TimeEntry
-		var u models.OwnerTrimmed
-		var o models.OwnerTrimmed
-		rows.Scan(&t.Id, &t.Created, &t.Updated, &t.Value, &t.ValueType, &t.Comments, &u.Id, &u.Name, &u.Avatar, &o.Id, &o.Name, &o.Avatar)
-		t.User = u
-		t.Organisation = o
-		time = append(time, t)
+		var timeEntry models.TimeEntry
+		var user models.OwnerTrimmed
+		var org models.OwnerTrimmed
+
+		// Convert the columns returned in the row of data into a time entry
+		rows.Scan(
+			&timeEntry.Id,
+			&timeEntry.Created,
+			&timeEntry.Updated,
+			&timeEntry.Value,
+			&timeEntry.ValueType,
+			&timeEntry.Comments,
+			&user.Id,
+			&user.Name,
+			&user.Avatar,
+			&org.Id,
+			&org.Name,
+			&org.Avatar)
+
+		// Set the user and organisation values on the time entry to those parsed above
+		timeEntry.User = user
+		timeEntry.Organisation = org
+
+		// add our parsed time entry into the retulting array
+		time = append(time, timeEntry)
 	}
 
+	// return an parsed rows
 	return time
 }
 
@@ -50,59 +79,148 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
-	row := dbConn.QueryRow(`SELECT * FROM vw_time_entries AS t WHERE t.id = $1;`, id)
-	var t models.TimeEntry
-	var u models.OwnerTrimmed
-	var o models.OwnerTrimmed
-	err := row.Scan(&t.Id, &t.Created, &t.Updated, &t.Value, &t.ValueType, &t.Comments, &u.Id, &u.Name, &u.Avatar, &o.Id, &o.Name, &o.Avatar)
-	helpers.HandleError(err)
-	t.User = u
-	t.Organisation = o
-	t.RepoItems = []models.RepoItem{}
-	t.Tags = []models.Tag{}
+	// Create our parameterised SQL query using our vw_time_entries view
+	query := `
+		SELECT id, created, updated, value, valueType, comments, 
+			userId, username, userAvatar, organisationId,
+			organisation, organisationAvatar
+		FROM vw_time_entries AS t
+		WHERE t.id = $1;
+	`
 
-	// Get the tags for the time entry
-	rows, err := dbConn.Query(`SELECT * FROM vw_time_entry_tags WHERE timeentryid = $1`, id)
+	// Get a single row of data for the above query
+	row := dbConn.QueryRow(query, id)
+
+	var timeEntry models.TimeEntry
+	var user models.OwnerTrimmed
+	var org models.OwnerTrimmed
+
+	// Parse the row to the above data model
+	// if no time entries with the id where found,
+	// an error will be thrown to indicate this
+	err := row.Scan(
+		&timeEntry.Id,
+		&timeEntry.Created,
+		&timeEntry.Updated,
+		&timeEntry.Value,
+		&timeEntry.ValueType,
+		&timeEntry.Comments,
+		&user.Id,
+		&user.Name,
+		&user.Avatar,
+		&org.Id,
+		&org.Name,
+		&org.Avatar)
+
+	// Handle any returned errors from row.Scan
 	helpers.HandleError(err)
-	defer rows.Close()
-	for rows.Next() {
-		var tg models.Tag
-		rows.Scan(&tg)
-		t.Tags = append(t.Tags, tg)
+
+	// Set the user and org properties to the parsed values below
+	timeEntry.User = user
+	timeEntry.Organisation = org
+
+	// Set the RepoItems and Tags properties to empty arrays
+	timeEntry.RepoItems = []models.RepoItem{}
+	timeEntry.Tags = []models.Tag{}
+
+	// Get the tags for the time entry and handle any returned errors
+	tagRows, err := dbConn.Query(`SELECT id, name FROM vw_time_entry_tags WHERE timeentryid = $1`, id)
+	helpers.HandleError(err)
+
+	// Defer closing of the tagRows cursor till the function returns
+	defer tagRows.Close()
+
+	// loop through the rows returned and parse them to an instance of Tag
+	// and append each value to timeEntry.Tags
+	for tagRows.Next() {
+		var tag models.Tag
+		tagRows.Scan(&tag.Id, &tag.Name)
+		timeEntry.Tags = append(timeEntry.Tags, tag)
 	}
 
-	// Get the repo items added to the time entry
-	repoRows, err := dbConn.Query(`SELECT * FROM vw_repo_items WHERE timeentryid = $1;`, id)
+	// linked repo items prepared statement
+	query = `
+		SELECT id, created, updated, itemIdSource, itemType, source, repoName, description
+		FROM vw_repo_items 
+		WHERE timeentryid = $1;
+	`
+
+	// Get the repo items added to the time entry and handle any errors
+	repoRows, err := dbConn.Query(query, id)
 	helpers.HandleError(err)
+
+	// Defer closing of the repoRows cursor till the function returns
 	defer repoRows.Close()
+
+	// loop through the rows returned and parse them to an instance of RepoItem
+	// and append each value to timeEntry.RepoItems
 	for repoRows.Next() {
-		var r models.RepoItem
-		repoRows.Scan(&r.Id, &r.Created, &r.Updated, &r.ItemIdSource, &r.ItemType, &r.Source, &r.RepoName, &r.Description)
-		t.RepoItems = append(t.RepoItems, r)
+		var repoItem models.RepoItem
+		repoRows.Scan(
+			&repoItem.Id,
+			&repoItem.Created,
+			&repoItem.Updated,
+			&repoItem.ItemIdSource,
+			&repoItem.ItemType,
+			&repoItem.Source,
+			&repoItem.RepoName,
+			&repoItem.Description)
+
+		timeEntry.RepoItems = append(timeEntry.RepoItems, repoItem)
 	}
 
-	return t
+	// Return the parsed time entry
+	return timeEntry
 }
 
-// Creates a new time entry in the database
-func CreateTimeEntry(t models.TimeEntry) uint {
+// Creates a new time entry in the database from the passed in models.TimeEntry
+// and returns the id of the new time entry
+func CreateTimeEntry(newEntry models.TimeEntry) uint {
+	// Connect to the DB and defer closing the connection until
+	// this function is finished
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
-	row := dbConn.QueryRow(`call sp_time_insert($1, $2, $3, $4, $5, 0)`, t.User.Id, t.Organisation.Id, t.Comments, t.Value, t.ValueType)
-	err := row.Scan(&t.Id)
+	// sp_time_insert stored procedure returns the id of the new time entry
+	// so call QueryRow with a prepared statement to just grab this value
+	// QueryRow returns a pointer to an instance of sql.Row with a single value
+	row := dbConn.QueryRow(`call sp_time_insert($1, $2, $3, $4, $5, 0)`,
+		newEntry.User.Id,
+		newEntry.Organisation.Id,
+		newEntry.Comments,
+		newEntry.Value,
+		newEntry.ValueType)
+
+	// Parse the new time entry id returned by the db in the row variable
+	// and handle any returned errors
+	err := row.Scan(&newEntry.Id)
 	helpers.HandleError(err)
 
-	for _, tag := range t.Tags {
-		dbConn.Exec(`call sp_time_tags_insert($1, $2, $3)`, t.Id, tag.Name, tag.Id)
+	// loop through the tags added to the entry and add the new tags
+	// and/or the link between the tags and time entry using our
+	// sp_time_tags_insert stored procedure
+	for _, tag := range newEntry.Tags {
+		dbConn.Exec(`call sp_time_tags_insert($1, $2, $3)`,
+			newEntry.Id,
+			tag.Name,
+			tag.Id)
 	}
 
-	for _, r := range t.RepoItems {
-		query := `call sp_time_repoitem_insert($1, $2, $3, $4, $5, $6, $7)`
-		dbConn.Exec(query, t.Id, r.Created, r.ItemIdSource, r.ItemType, r.Source, r.RepoName, r.Description)
+	// Loop through the linked repository items to the database with a link to this
+	// new time entry, using the sp_time_repoitem_insert stored procedure
+	for _, r := range newEntry.RepoItems {
+		dbConn.Exec(`call sp_time_repoitem_insert($1, $2, $3, $4, $5, $6, $7)`,
+			newEntry.Id,
+			r.Created,
+			r.ItemIdSource,
+			r.ItemType,
+			r.Source,
+			r.RepoName,
+			r.Description)
 	}
 
-	return t.Id
+	// Return the time entries new id
+	return newEntry.Id
 }
 
 // Updates an existing time entry

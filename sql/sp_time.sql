@@ -1,3 +1,4 @@
+-- View for getting time entries with basic user and org details
 CREATE OR REPLACE VIEW vw_time_entries
 AS (
     SELECT t.id, t.created, t.updated, t.value, t.valueType,
@@ -13,13 +14,15 @@ AS (
     LEFT JOIN tbl_organisation AS o ON o.id = t.organisationId
 );
 
+-- View for getting tags that are linked to time entries
 CREATE OR REPLACE VIEW vw_time_entry_tags
 AS (
-    SELECT t.id, t.name, ttl.timeentryid
+    SELECT t.id, t.name, t.userId, ttl.timeentryid
     FROM tbl_timeentrytaglink AS ttl
     INNER JOIN tbl_tag AS t ON t.id = ttl.tagid
 );
 
+-- View for getting repo item with null column values filled in
 CREATE OR REPLACE VIEW vw_repo_items
 AS (
     SELECT r.id, r.created, r.updated, r.itemidsource, r.itemtype, r.source, r.reponame,
@@ -27,6 +30,7 @@ AS (
     FROM tbl_repoitem AS r
 );
 
+-- Inserts a new time entry and outputs the new time entry ID
 CREATE OR REPLACE PROCEDURE sp_time_insert (
     arg_user_id BIGINT,
     arg_org_id BIGINT,
@@ -65,6 +69,7 @@ BEGIN
     RETURNING id INTO timeentryid;
 END;$$;
 
+-- Deletes a time entry
 CREATE OR REPLACE PROCEDURE sp_time_delete (entry_id BIGINT)
 LANGUAGE plpgsql
 AS $$
@@ -72,6 +77,8 @@ BEGIN
     DELETE FROM tbl_timeentry WHERE id = entry_id;
 END;$$;
 
+-- Creates a link between a time entry and a tag, or creates a new tag if one isn't found
+-- TODO: Add userId param for user created tags
 CREATE OR REPLACE PROCEDURE sp_time_tags_insert (
     time_entry_id BIGINT,
     tag_name VARCHAR(50),
@@ -92,6 +99,7 @@ BEGIN
     VALUES (tag_id, time_entry_id);
 END;$$;
 
+-- Deletes a time entry tag links
 CREATE OR REPLACE PROCEDURE sp_time_tags_delete (time_entry_id BIGINT, tag_id BIGINT)
 LANGUAGE plpgsql
 AS $$
@@ -99,6 +107,7 @@ BEGIN
     DELETE FROM tbl_timeentrytaglink WHERE tagid = tag_id AND timeentryid = time_entry_id;
 END;$$;
 
+-- deletes a repo item with the given row ID
 CREATE OR REPLACE PROCEDURE sp_time_repoitem_delete (item_id BIGINT)
 LANGUAGE plpgsql
 AS $$
@@ -106,6 +115,7 @@ BEGIN
     DELETE FROM tbl_repoitem WHERE id = item_id;
 END;$$;
 
+-- Creates a new repo item entry in the DB
 CREATE OR REPLACE PROCEDURE sp_time_repoitem_insert (
     time_entry_id BIGINT,
     item_created timestamp,

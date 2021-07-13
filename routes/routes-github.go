@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -15,13 +16,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Structure of the access token request body
-type GHTokenReqBody struct {
-	// Code returned in the redirect URL after a user
-	// has logged in with GitHub
-	SessionCode string `json:"sessionCode"`
-}
-
 // Gets the github URL for logging into this app with GitHub
 func getGitHubLoginUrl(w http.ResponseWriter, r *http.Request) {
 	loginUrl, err := github.LoginUrl()
@@ -32,51 +26,71 @@ func getGitHubLoginUrl(w http.ResponseWriter, r *http.Request) {
 	apiResponse(resp, w)
 }
 
-// Gets the users access token
+// Structure of the access token request body
+type GHTokenReqBody struct {
+	// Code returned in the redirect URL after a user
+	// has logged in with GitHub
+	SessionCode string `json:"sessionCode"`
+}
+
+// Gets logged in user's access token from GitHub's auth server using the
+// session code returned when they signed in with GitHub.
+// The user's details are then either retreived from the database
+// using their github user id, or a new user is created if this is their
+// first time logging into the application.
 func getGitHubAccessToken(w http.ResponseWriter, r *http.Request) {
-	body := readBody(r)
-	var fmtBody GHTokenReqBody
-	err := json.Unmarshal(body, &fmtBody)
+	// Use the built in ioutil from io/ioutil to
+	// read the request body into a []byte
+	body, err := ioutil.ReadAll(r.Body)
 	helpers.HandleError(err)
 
-	// Grab the access token
-	token, err := github.GetAccessToken(fmtBody.SessionCode)
+	// Decode the JSON request body to our GHTokenReqBody
+	// so we can use the session code
+	var tokenReqBody GHTokenReqBody
+	err = json.Unmarshal(body, &tokenReqBody)
 	helpers.HandleError(err)
 
-	// call the check token method to get our logged in users details
-	ct, err := github.CheckToken(token)
+	// 1. Grab the access token from GitHub using the session code
+	accessToken, err := github.GetAccessToken(tokenReqBody.SessionCode)
 	helpers.HandleError(err)
 
-	// 1: Create a new user if its this user's
-	//    first time logging into our application
-	//    or get the existing users details
+	// 2. Call the check token method with our new access token
+	//    to get the logged in users details
+	checkTokenResult, err := github.CheckToken(accessToken)
+	helpers.HandleError(err)
+
+	// 3: Check if the user exists using their GitHub user id, and either:
+	//   - Create a new user record if this is their first time logging in
+	//   - Get the existing users details
 
 	var user models.User
-	if !db.GitHubUserExists(*ct.User.Login) {
-		user = db.CreateUser(*ct.User)
+	if !db.GitHubUserExists(*checkTokenResult.User.Login) {
+		user = db.CreateUser(*checkTokenResult.User)
 	} else {
-		user = db.GetUserByGitHubLogin(*ct.User.Login)
+		user = db.GetUserByGitHubLogin(*checkTokenResult.User.Login)
 	}
 
-	// 2: Set a cookie containing the user's token
-	//    that we can use for future request
+	// 4: Set a cookie containing the user's token
+	//    that we can use for future request, only
+	//    set the Secure attribute to true if not in
+	//    development mode
 	isDev := os.Getenv("HOSTING_ENV") == "Development"
-	expires := 30 * 24 * time.Hour
-	cookie := &http.Cookie{
+	tokenCookieExpires := 30 * 24 * time.Hour
+	tokenCookie := &http.Cookie{
 		Name:     tokenCookieName,
-		Value:    token,
+		Value:    accessToken,
 		Path:     "/",
-		Expires:  time.Now().Add(expires),
+		Expires:  time.Now().Add(tokenCookieExpires),
 		MaxAge:   0,
 		Secure:   !isDev,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 		Unparsed: []string{},
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, tokenCookie)
 	w.WriteHeader(http.StatusOK)
 
-	// 3: Return the users details for and their settings
+	// 5: Return the users details to the caller
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }

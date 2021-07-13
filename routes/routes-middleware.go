@@ -18,25 +18,36 @@ var unauthedRoutes = []string{
 	"/api/auth/isAuthenticated",
 }
 
-// Recovers the application from a runtime error
+// Middleware function for recovering the application from a panicking request
 func PanicHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Using the defer keyword will cause this function to only run
+		// after the surrounding function returns
 		defer func() {
+			// Recover the application from an error when panic() is called
+			// by a go routine grab the error so we can do something with it,
+			// if no error has occurred, err will be nil.
 			err := recover()
 
+			// if the error has a value check it and return something based on this error to the user
 			if err != nil {
 				log.Println(err)
 
+				// Create a very generic error message for now
+				// TODO: Check the actual error returned by recover() and return message a bit more specific
+				//       to the error, like "Invalid access token" for revoked or expired tokens
 				resp := map[string]interface{}{
 					"message": "Internal server error",
 				}
 
+				// return the above error message to the caller
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(resp)
 			}
 		}()
 
+		// Forward onto the next HTTP handler
 		next.ServeHTTP(w, r)
 	})
 }
