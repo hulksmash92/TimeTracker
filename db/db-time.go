@@ -17,6 +17,13 @@ type UpdatedTimeEntry struct {
 	RepoItems *[]models.RepoItem `json:"repoItems,omitempty"`
 }
 
+var getTimeBaseQuery = `
+	SELECT id, created, updated, value, valueType, comments, 
+		userId, username, userAvatar, organisationId,
+		organisation, organisationAvatar
+	FROM vw_time_entries AS t
+`
+
 // Gets all time entries for a user and the given date range
 // TODO: Add server side pagination and sorting to improve speeds as data scales
 func GetTimeEntries(userId uint, dateFrom time.Time, dateTo time.Time) []models.TimeEntry {
@@ -24,14 +31,10 @@ func GetTimeEntries(userId uint, dateFrom time.Time, dateTo time.Time) []models.
 	defer dbConn.Close()
 
 	// Create our parameterised SQL query using our vw_time_entries view
-	query := `
-		SELECT id, created, updated, value, valueType, comments, 
-			userId, username, userAvatar, organisationId,
-			organisation, organisationAvatar
-		FROM vw_time_entries AS t
+	query := getTimeBaseQuery + `
 		WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3
-		ORDER BY created DESC;
-	`
+		ORDER BY created DESC;`
+
 	// Query the db with the above statement and handle any returned errors
 	rows, err := dbConn.Query(query, userId, dateFrom, dateTo)
 	helpers.HandleError(err)
@@ -81,13 +84,7 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	defer dbConn.Close()
 
 	// Create our parameterised SQL query using our vw_time_entries view
-	query := `
-		SELECT id, created, updated, value, valueType, comments, 
-			userId, username, userAvatar, organisationId,
-			organisation, organisationAvatar
-		FROM vw_time_entries AS t
-		WHERE t.id = $1;
-	`
+	query := getTimeBaseQuery + `WHERE t.id = $1;`
 
 	// Get a single row of data for the above query
 	row := dbConn.QueryRow(query, id)
