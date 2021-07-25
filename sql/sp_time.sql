@@ -79,19 +79,21 @@ END;$$;
 
 -- Creates a link between a time entry and a tag, or creates a new tag if one isn't found
 -- TODO: Add userId param for user created tags
+DROP PROCEDURE IF EXISTS sp_time_tags_insert;
 CREATE OR REPLACE PROCEDURE sp_time_tags_insert (
     time_entry_id BIGINT,
     tag_name VARCHAR(50),
-    tag_id BIGINT
+    tag_id BIGINT,
+    user_id INT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    SELECT id INTO tag_id FROM tbl_tag WHERE name = tag_name;
+    SELECT id INTO tag_id FROM tbl_tag WHERE name = tag_name AND (userId IS NULL OR userId = user_id);
 
     IF tag_id = 0 OR tag_id IS NULL THEN
-        INSERT INTO tbl_tag (name)
-        VALUES (tag_name)
+        INSERT INTO tbl_tag (name, userId)
+        VALUES (tag_name, user_id)
         RETURNING id INTO tag_id;
     END IF;
 

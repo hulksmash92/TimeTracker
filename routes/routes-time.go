@@ -100,7 +100,8 @@ func deleteTime(w http.ResponseWriter, r *http.Request) {
 
 // Handles the GET request for retreiving all tags
 func getTags(w http.ResponseWriter, r *http.Request) {
-	tags := db.GetTags()
+	userId := getUserId(r)
+	tags := db.GetTags(userId)
 	res := map[string]interface{}{"data": tags}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)

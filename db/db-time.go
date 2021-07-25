@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 	"timetracker/helpers"
@@ -196,28 +197,11 @@ func CreateTimeEntry(newEntry models.TimeEntry) uint {
 	err := row.Scan(&newEntry.Id)
 	helpers.HandleError(err)
 
-	// loop through the tags added to the entry and add the new tags
-	// and/or the link between the tags and time entry using our
-	// sp_time_tags_insert stored procedure
-	for _, tag := range newEntry.Tags {
-		dbConn.Exec(`call sp_time_tags_insert($1, $2, $3)`,
-			newEntry.Id,
-			tag.Name,
-			tag.Id)
-	}
+	// Insert any tags linked to the time entry
+	insertTags(&newEntry.Tags, newEntry.Id, newEntry.User.Id, dbConn)
 
-	// Loop through the linked repository items to the database with a link to this
-	// new time entry, using the sp_time_repoitem_insert stored procedure
-	for _, r := range newEntry.RepoItems {
-		dbConn.Exec(`call sp_time_repoitem_insert($1, $2, $3, $4, $5, $6, $7)`,
-			newEntry.Id,
-			r.Created,
-			r.ItemIdSource,
-			r.ItemType,
-			r.Source,
-			r.RepoName,
-			r.Description)
-	}
+	// Insert any repo items for the new time entry
+	insertRepoItem(&newEntry.RepoItems, newEntry.Id, dbConn)
 
 	// Return the time entries new id
 	return newEntry.Id
@@ -251,10 +235,7 @@ func UpdateTimeEntry(userId uint, timeEntryId uint, vals UpdatedTimeEntry) error
 	if vals.Tags != nil {
 		_, err := dbConn.Exec(`DELETE FROM tbl_timeentrytaglinks WHERE timeentryid = $1`, vals.ValueType, timeEntryId)
 		helpers.HandleError(err)
-
-		for _, tag := range *vals.Tags {
-			dbConn.Exec(`call sp_time_tags_insert($1, $2, $3)`, timeEntryId, tag.Name, tag.Id)
-		}
+		insertTags(vals.Tags, timeEntryId, userId, dbConn)
 	}
 
 	if vals.RepoItems != nil {
@@ -282,12 +263,7 @@ func UpdateTimeEntry(userId uint, timeEntryId uint, vals UpdatedTimeEntry) error
 		}
 
 		// Add in any new repo items
-		for _, r := range *vals.RepoItems {
-			if r.Id == 0 {
-				query = `call sp_time_repoitem_insert($1, $2, $3, $4, $5, $6, $7)`
-				dbConn.Exec(query, timeEntryId, r.Created, r.ItemIdSource, r.ItemType, r.Source, r.RepoName, r.Description)
-			}
-		}
+		insertRepoItem(vals.RepoItems, timeEntryId, dbConn)
 	}
 
 	return nil
@@ -305,6 +281,30 @@ func DeleteTimeEntry(userId uint, timeEntryId uint) error {
 	helpers.HandleError(err)
 
 	return nil
+}
+
+// Links the tags to the time entry, inserting any new user created tags into the tags table
+func insertTags(tags *[]models.Tag, timeEntryId uint, userId uint, dbConn *sql.DB) {
+	// loop through the tags added to the entry and add the new tags
+	// and/or the link between the tags and time entry using our
+	// sp_time_tags_insert stored procedure
+	query := `call sp_time_tags_insert($1, $2, $3, $4)`
+	for _, tag := range *tags {
+		dbConn.Exec(query, timeEntryId, tag.Name, tag.Id, userId)
+	}
+}
+
+// Adds any new repo items to the selected time entry
+func insertRepoItem(repoItems *[]models.RepoItem, timeEntryId uint, dbConn *sql.DB) {
+	query := `call sp_time_repoitem_insert($1, $2, $3, $4, $5, $6, $7)`
+
+	// Loop through the linked repository items to the database with a link to this
+	// new time entry, using the sp_time_repoitem_insert stored procedure
+	for _, r := range *repoItems {
+		if r.Id == 0 {
+			dbConn.Exec(query, timeEntryId, r.Created, r.ItemIdSource, r.ItemType, r.Source, r.RepoName, r.Description)
+		}
+	}
 }
 
 // Checks if the user and time entry ids are valid
