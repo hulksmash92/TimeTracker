@@ -210,31 +210,24 @@ func UpdateTimeEntry(userId uint, timeEntryId uint, vals UpdatedTimeEntry) error
 		return err
 	}
 
+	// Connect to the database and defer closing until the func ends
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
-	var query string
 
 	if vals.Comments != nil {
-		query = `UPDATE tbl_timeentry SET updated = NOW(), comments = $1 WHERE id = $2`
-		_, err := dbConn.Exec(query, vals.Comments, timeEntryId)
-		helpers.HandleError(err)
+		updateTimeProp(timeEntryId, "comments", vals.Comments, dbConn)
 	}
 	if vals.Value != nil {
-		query = `UPDATE tbl_timeentry SET updated = NOW(), value = $1 WHERE id = $2`
-		_, err := dbConn.Exec(query, vals.Value, timeEntryId)
-		helpers.HandleError(err)
+		updateTimeProp(timeEntryId, "value", vals.Value, dbConn)
 	}
 	if vals.ValueType != nil {
-		query = `UPDATE tbl_timeentry SET updated = NOW(), valueType = $1 WHERE id = $2`
-		_, err := dbConn.Exec(query, vals.ValueType, timeEntryId)
-		helpers.HandleError(err)
+		updateTimeProp(timeEntryId, "valueType", vals.ValueType, dbConn)
 	}
 	if vals.Tags != nil {
 		_, err := dbConn.Exec(`DELETE FROM tbl_timeentrytaglinks WHERE timeentryid = $1`, vals.ValueType, timeEntryId)
 		helpers.HandleError(err)
 		insertTags(vals.Tags, timeEntryId, userId, dbConn)
 	}
-
 	if vals.RepoItems != nil {
 		rows, err := dbConn.Query(`SELECT id FROM tbl_repoitem WHERE timeEntryId = $1`, timeEntryId)
 		helpers.HandleError(err)
@@ -266,20 +259,6 @@ func UpdateTimeEntry(userId uint, timeEntryId uint, vals UpdatedTimeEntry) error
 	return nil
 }
 
-// Deletes the selected time entry
-func DeleteTimeEntry(userId uint, timeEntryId uint) error {
-	if err := checkUserIdAndTimeEntryIdValue(userId, timeEntryId); err != nil {
-		return err
-	}
-
-	dbConn := helpers.ConnectDB()
-	defer dbConn.Close()
-	_, err := dbConn.Exec(`call sp_time_delete($1)`, timeEntryId)
-	helpers.HandleError(err)
-
-	return nil
-}
-
 // Links the tags to the time entry, inserting any new user created tags into the tags table
 func insertTags(tags *[]models.Tag, timeEntryId uint, userId uint, dbConn *sql.DB) {
 	// loop through the tags added to the entry and add the new tags
@@ -302,6 +281,28 @@ func insertRepoItem(repoItems *[]models.RepoItem, timeEntryId uint, dbConn *sql.
 			dbConn.Exec(query, timeEntryId, r.Created, r.ItemIdSource, r.ItemType, r.Source, r.RepoName, r.Description)
 		}
 	}
+}
+
+// Updates the selected property on the time entry with the new value
+// handles any errors returned from the DB
+func updateTimeProp(timeEntryId uint, propName string, value interface{}, dbConn *sql.DB) {
+	query := `UPDATE tbl_timeentry SET updated = NOW(), ` + propName + ` = $1 WHERE id = $2`
+	_, err := dbConn.Exec(query, value, timeEntryId)
+	helpers.HandleError(err)
+}
+
+// Deletes the selected time entry
+func DeleteTimeEntry(userId uint, timeEntryId uint) error {
+	if err := checkUserIdAndTimeEntryIdValue(userId, timeEntryId); err != nil {
+		return err
+	}
+
+	dbConn := helpers.ConnectDB()
+	defer dbConn.Close()
+	_, err := dbConn.Exec(`call sp_time_delete($1)`, timeEntryId)
+	helpers.HandleError(err)
+
+	return nil
 }
 
 // Checks if the user and time entry ids are valid
