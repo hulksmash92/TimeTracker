@@ -35,8 +35,39 @@ func GetTimeEntries(userId uint, dateFrom time.Time, dateTo time.Time) []models.
 		WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3
 		ORDER BY created DESC;`
 
+	// Get time entries using our reusable function
+	time := getTimeEntries(dbConn, query, userId, dateFrom, dateTo)
+
+	// return parsed rows
+	return time
+}
+
+// Gets the time entry with a given id
+func GetTimeEntry(id uint) models.TimeEntry {
+	dbConn := helpers.ConnectDB()
+	defer dbConn.Close()
+
+	// Create our parameterised SQL query using our vw_time_entries view
+	query := getTimeBaseQuery + ` WHERE t.id = $1;`
+	timeEntries := getTimeEntries(dbConn, query, id)
+
+	var timeEntry models.TimeEntry
+
+	if len(timeEntries) > 0 {
+		timeEntry = timeEntries[0]
+
+		// Set the RepoItems and Tags properties to empty arrays
+		timeEntry.Tags = getTimeEntryTags(id, dbConn)
+		timeEntry.RepoItems = getTimeEntryRepos(id, dbConn)
+	}
+
+	// Return the parsed time entry
+	return timeEntry
+}
+
+func getTimeEntries(dbConn *sql.DB, query string, args ...interface{}) []models.TimeEntry {
 	// Query the db with the above statement and handle any returned errors
-	rows, err := dbConn.Query(query, userId, dateFrom, dateTo)
+	rows, err := dbConn.Query(query, args)
 	helpers.HandleError(err)
 
 	// defer closing the sql.Rows cursor until the function has finished
@@ -74,55 +105,16 @@ func GetTimeEntries(userId uint, dateFrom time.Time, dateTo time.Time) []models.
 		time = append(time, timeEntry)
 	}
 
-	// return an parsed rows
 	return time
 }
 
-// Gets the time entry with a given id
-func GetTimeEntry(id uint) models.TimeEntry {
-	dbConn := helpers.ConnectDB()
-	defer dbConn.Close()
-
-	// Create our parameterised SQL query using our vw_time_entries view
-	query := getTimeBaseQuery + `WHERE t.id = $1;`
-
-	// Get a single row of data for the above query
-	row := dbConn.QueryRow(query, id)
-
-	var timeEntry models.TimeEntry
-	var user models.OwnerTrimmed
-	var org models.OwnerTrimmed
-
-	// Parse the row to the above data model
-	// if no time entries with the id where found,
-	// an error will be thrown to indicate this
-	err := row.Scan(
-		&timeEntry.Id,
-		&timeEntry.Created,
-		&timeEntry.Updated,
-		&timeEntry.Value,
-		&timeEntry.ValueType,
-		&timeEntry.Comments,
-		&user.Id,
-		&user.Name,
-		&user.Avatar,
-		&org.Id,
-		&org.Name,
-		&org.Avatar)
-
-	// Handle any returned errors from row.Scan
-	helpers.HandleError(err)
-
-	// Set the user and org properties to the parsed values below
-	timeEntry.User = user
-	timeEntry.Organisation = org
-
-	// Set the RepoItems and Tags properties to empty arrays
-	timeEntry.RepoItems = []models.RepoItem{}
-	timeEntry.Tags = []models.Tag{}
+// Gets the tags linked to the time entry
+func getTimeEntryTags(timeEntryId uint, dbConn *sql.DB) []models.Tag {
+	tags := []models.Tag{}
 
 	// Get the tags for the time entry and handle any returned errors
-	tagRows, err := dbConn.Query(`SELECT id, name FROM vw_time_entry_tags WHERE timeentryid = $1`, id)
+	query := `SELECT id, name FROM vw_time_entry_tags WHERE timeentryid = $1`
+	tagRows, err := dbConn.Query(query, timeEntryId)
 	helpers.HandleError(err)
 
 	// Defer closing of the tagRows cursor till the function returns
@@ -133,21 +125,23 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	for tagRows.Next() {
 		var tag models.Tag
 		tagRows.Scan(&tag.Id, &tag.Name)
-		timeEntry.Tags = append(timeEntry.Tags, tag)
+		tags = append(tags, tag)
 	}
 
-	// linked repo items prepared statement
-	query = `
+	return tags
+}
+
+// Gets the repo items linked to the selected time entry
+func getTimeEntryRepos(timeEntryId uint, dbConn *sql.DB) []models.RepoItem {
+	repoItems := []models.RepoItem{}
+	query := `
 		SELECT id, created, updated, itemIdSource, itemType, source, repoName, description
 		FROM vw_repo_items 
 		WHERE timeentryid = $1;
 	`
-
 	// Get the repo items added to the time entry and handle any errors
-	repoRows, err := dbConn.Query(query, id)
+	repoRows, err := dbConn.Query(query, timeEntryId)
 	helpers.HandleError(err)
-
-	// Defer closing of the repoRows cursor till the function returns
 	defer repoRows.Close()
 
 	// loop through the rows returned and parse them to an instance of RepoItem
@@ -164,11 +158,10 @@ func GetTimeEntry(id uint) models.TimeEntry {
 			&repoItem.RepoName,
 			&repoItem.Description)
 
-		timeEntry.RepoItems = append(timeEntry.RepoItems, repoItem)
+		repoItems = append(repoItems, repoItem)
 	}
 
-	// Return the parsed time entry
-	return timeEntry
+	return repoItems
 }
 
 // Creates a new time entry in the database from the passed in models.TimeEntry
