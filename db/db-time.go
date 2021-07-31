@@ -19,15 +19,23 @@ type UpdatedTimeEntry struct {
 	RepoItems *[]models.RepoItem `json:"repoItems,omitempty"`
 }
 
-var getTimeBaseQuery = `
-	SELECT id, created, updated, value, valueType, comments, 
-		userId, username, userAvatar, organisationId,
-		organisation, organisationAvatar
-	FROM vw_time_entries AS t
-`
+// Columns to pull when getting time data
+var timecols = []string{
+	"id",
+	"created",
+	"updated",
+	"value",
+	"valueType",
+	"comments",
+	"userId",
+	"username",
+	"userAvatar",
+	"organisationId",
+	"organisation",
+	"organisationAvatar",
+}
 
 // Gets all time entries for a user and the given date range
-// TODO: Add server side pagination and sorting to improve speeds as data scales
 func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool, dateFrom, dateTo time.Time) (uint, []models.TimeEntry) {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
@@ -42,11 +50,6 @@ func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool
 	helpers.HandleError(err)
 
 	if rowCount > 0 {
-		cols := []string{
-			"id", "created", "updated", "value", "valueType", "comments",
-			"userId", "username", "userAvatar", "organisationId", "organisation", "organisationAvatar",
-		}
-
 		if pageSize == 0 {
 			pageSize = 20
 		}
@@ -58,12 +61,12 @@ func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool
 		if sortDesc {
 			orderDir = "DESC"
 		}
-		if !helpers.StrArrayContains(cols, sort) {
+		if !helpers.StrArrayContains(timecols, sort) {
 			sort = "created"
 		}
 
 		queryEnd := fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d;", sort, orderDir, pageSize, offset)
-		query = "SELECT " + strings.Join(cols, ", ") + queryMid + queryEnd
+		query = "SELECT " + strings.Join(timecols, ", ") + queryMid + queryEnd
 		time = getTimeEntries(dbConn, query, userId, dateFrom, dateTo)
 	}
 
@@ -77,7 +80,7 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	defer dbConn.Close()
 
 	// Create our parameterised SQL query using our vw_time_entries view
-	query := getTimeBaseQuery + ` WHERE t.id = $1;`
+	query := "SELECT " + strings.Join(timecols, ", ") + " FROM vw_time_entries AS t WHERE t.id = $1;"
 	timeEntries := getTimeEntries(dbConn, query, id)
 
 	var timeEntry models.TimeEntry
