@@ -31,6 +31,23 @@ func timeRouteHandler(w http.ResponseWriter, r *http.Request) {
 func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 	userId := getUserId(r)
 
+	pageIndex, err := strconv.ParseUint(r.URL.Query().Get("pageIndex"), 10, 32)
+	if err != nil {
+		pageIndex = 0
+	}
+	pageSize, err := strconv.ParseUint(r.URL.Query().Get("pageSize"), 10, 32)
+	if err != nil {
+		pageSize = 0
+	}
+	sort := r.URL.Query().Get("sort")
+	if sort == "" {
+		sort = "created"
+	}
+	sortDesc, err := strconv.ParseBool(r.URL.Query().Get("sortDesc"))
+	if err != nil {
+		sortDesc = true
+	}
+
 	dateFrom, err := time.Parse(dtParamLayout, r.URL.Query().Get("from"))
 	if err != nil {
 		dateFrom = time.Now().AddDate(0, 0, -29)
@@ -40,8 +57,13 @@ func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 		dateTo = time.Now()
 	}
 
-	timeData := db.GetTimeEntries(userId, dateFrom, dateTo)
-	res := map[string]interface{}{"data": timeData}
+	rowCount, timeData := db.GetTimeEntries(userId, uint(pageIndex), uint(pageSize), sort, sortDesc, dateFrom, dateTo)
+	res := map[string]interface{}{
+		"data": map[string]interface{}{
+			"rowCount": rowCount,
+			"page":     timeData,
+		},
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)
 }

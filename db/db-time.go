@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 	"timetracker/helpers"
 	"timetracker/models"
@@ -26,20 +28,47 @@ var getTimeBaseQuery = `
 
 // Gets all time entries for a user and the given date range
 // TODO: Add server side pagination and sorting to improve speeds as data scales
-func GetTimeEntries(userId uint, dateFrom time.Time, dateTo time.Time) []models.TimeEntry {
+func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool, dateFrom, dateTo time.Time) (uint, []models.TimeEntry) {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
-	// Create our parameterised SQL query using our vw_time_entries view
-	query := getTimeBaseQuery + `
-		WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3
-		ORDER BY created DESC;`
+	queryMid := ` FROM vw_time_entries AS t WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3`
+	rowCount := uint(0)
+	time := []models.TimeEntry{}
 
-	// Get time entries using our reusable function
-	time := getTimeEntries(dbConn, query, userId, dateFrom, dateTo)
+	query := "SELECT COUNT(*) " + queryMid
+	row := dbConn.QueryRow(query, userId, dateFrom, dateTo)
+	err := row.Scan(rowCount)
+	helpers.HandleError(err)
+
+	if rowCount > 0 {
+		cols := []string{
+			"id", "created", "updated", "value", "valueType", "comments",
+			"userId", "username", "userAvatar", "organisationId", "organisation", "organisationAvatar",
+		}
+
+		if pageSize == 0 {
+			pageSize = 20
+		}
+		offset := uint(0)
+		if pageIndex > 0 {
+			offset = pageIndex * pageSize
+		}
+		orderDir := ""
+		if sortDesc {
+			orderDir = "DESC"
+		}
+		if !helpers.StrArrayContains(cols, sort) {
+			sort = "created"
+		}
+
+		queryEnd := fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d;", sort, orderDir, pageSize, offset)
+		query = "SELECT " + strings.Join(cols, ", ") + queryMid + queryEnd
+		time = getTimeEntries(dbConn, query, userId, dateFrom, dateTo)
+	}
 
 	// return parsed rows
-	return time
+	return rowCount, time
 }
 
 // Gets the time entry with a given id
@@ -65,6 +94,7 @@ func GetTimeEntry(id uint) models.TimeEntry {
 	return timeEntry
 }
 
+// Gets the time entries for the given prepared sql query and parameters
 func getTimeEntries(dbConn *sql.DB, query string, args ...interface{}) []models.TimeEntry {
 	// Query the db with the above statement and handle any returned errors
 	rows, err := dbConn.Query(query, args)
@@ -198,7 +228,7 @@ func CreateTimeEntry(newEntry models.TimeEntry) uint {
 }
 
 // Updates an existing time entry
-func UpdateTimeEntry(userId uint, timeEntryId uint, vals UpdatedTimeEntry) error {
+func UpdateTimeEntry(userId, timeEntryId uint, vals UpdatedTimeEntry) error {
 	if err := checkUserIdAndTimeEntryIdValue(userId, timeEntryId); err != nil {
 		return err
 	}
@@ -253,7 +283,7 @@ func UpdateTimeEntry(userId uint, timeEntryId uint, vals UpdatedTimeEntry) error
 }
 
 // Links the tags to the time entry, inserting any new user created tags into the tags table
-func insertTags(tags *[]models.Tag, timeEntryId uint, userId uint, dbConn *sql.DB) {
+func insertTags(tags *[]models.Tag, timeEntryId, userId uint, dbConn *sql.DB) {
 	// loop through the tags added to the entry and add the new tags
 	// and/or the link between the tags and time entry using our
 	// sp_time_tags_insert stored procedure
@@ -285,7 +315,7 @@ func updateTimeProp(timeEntryId uint, propName string, value interface{}, dbConn
 }
 
 // Deletes the selected time entry
-func DeleteTimeEntry(userId uint, timeEntryId uint) error {
+func DeleteTimeEntry(userId, timeEntryId uint) error {
 	if err := checkUserIdAndTimeEntryIdValue(userId, timeEntryId); err != nil {
 		return err
 	}
@@ -299,7 +329,7 @@ func DeleteTimeEntry(userId uint, timeEntryId uint) error {
 }
 
 // Checks if the user and time entry ids are valid
-func checkUserIdAndTimeEntryIdValue(userId uint, timeEntryId uint) error {
+func checkUserIdAndTimeEntryIdValue(userId, timeEntryId uint) error {
 	if timeEntryId == 0 {
 		return errors.New("Invalid time entry Id")
 	}
@@ -313,7 +343,7 @@ func checkUserIdAndTimeEntryIdValue(userId uint, timeEntryId uint) error {
 }
 
 // Checks if the user can amend the selected time entry
-func canAmendTimeEntry(userId uint, timeEntryId uint) bool {
+func canAmendTimeEntry(userId, timeEntryId uint) bool {
 	dbConn := helpers.ConnectDB()
 	defer dbConn.Close()
 
