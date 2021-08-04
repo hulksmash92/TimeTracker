@@ -6,7 +6,40 @@ import (
 	"os"
 )
 
+// Global database connection, will be reused when a funcs calls connectDB()
 var dbConnection *sql.DB
+
+// Defines pagination params
+type Pagination struct {
+	PageSize  uint
+	PageIndex uint
+	Sort      string
+	SortDesc  bool
+}
+
+// Gets the pagesize
+func (p Pagination) GetPageSize() uint {
+	if p.PageSize == 0 {
+		return 20
+	}
+	return p.PageSize
+}
+
+// Gets the num of rows to offset by
+func (p Pagination) Offset() uint {
+	if p.PageIndex == 0 {
+		return 0
+	}
+	return p.PageIndex * p.GetPageSize()
+}
+
+// Gets the direction of sort based on SortDesc val
+func (p Pagination) SortDirection() string {
+	if p.SortDesc {
+		return "DESC"
+	}
+	return "ASC"
+}
 
 // Generates a PostgreSQL connection string from details defined in the
 // environment variables starting with `PSQL_`

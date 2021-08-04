@@ -36,7 +36,7 @@ var timecols = []string{
 }
 
 // Gets all time entries for a user and the given date range
-func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool, dateFrom, dateTo time.Time) (uint, []models.TimeEntry) {
+func GetTimeEntries(userId uint, dateFrom, dateTo time.Time, page Pagination) (uint, []models.TimeEntry) {
 	dbConn := connectDB()
 	defer dbConn.Close()
 
@@ -50,22 +50,11 @@ func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool
 	helpers.HandleError(err)
 
 	if rowCount > 0 {
-		if pageSize == 0 {
-			pageSize = 20
-		}
-		offset := uint(0)
-		if pageIndex > 0 {
-			offset = pageIndex * pageSize
-		}
-		orderDir := ""
-		if sortDesc {
-			orderDir = "DESC"
-		}
-		if !helpers.StrArrayContains(timecols, sort) {
-			sort = "created"
+		if !helpers.StrArrayContains(timecols, page.Sort) {
+			page.Sort = "created"
 		}
 
-		queryEnd := fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d;", sort, orderDir, pageSize, offset)
+		queryEnd := fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d;", page.Sort, page.SortDirection(), page.GetPageSize(), page.Offset())
 		query = "SELECT " + strings.Join(timecols, ", ") + queryMid + queryEnd
 		time = getTimeEntries(dbConn, query, userId, dateFrom, dateTo)
 	}

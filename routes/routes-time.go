@@ -31,6 +31,15 @@ func timeRouteHandler(w http.ResponseWriter, r *http.Request) {
 func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 	userId := getUserId(r)
 
+	dateFrom, err := time.Parse(dtParamLayout, r.URL.Query().Get("from"))
+	if err != nil {
+		dateFrom = time.Now().AddDate(0, 0, -29)
+	}
+	dateTo, err := time.Parse(dtParamLayout, r.URL.Query().Get("to"))
+	if err != nil {
+		dateTo = time.Now()
+	}
+
 	pageIndex, err := strconv.ParseUint(r.URL.Query().Get("pageIndex"), 10, 32)
 	if err != nil {
 		pageIndex = 0
@@ -48,16 +57,14 @@ func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 		sortDesc = true
 	}
 
-	dateFrom, err := time.Parse(dtParamLayout, r.URL.Query().Get("from"))
-	if err != nil {
-		dateFrom = time.Now().AddDate(0, 0, -29)
-	}
-	dateTo, err := time.Parse(dtParamLayout, r.URL.Query().Get("to"))
-	if err != nil {
-		dateTo = time.Now()
+	pagination := db.Pagination{
+		PageSize:  uint(pageIndex),
+		PageIndex: uint(pageSize),
+		Sort:      sort,
+		SortDesc:  sortDesc,
 	}
 
-	rowCount, timeData := db.GetTimeEntries(userId, uint(pageIndex), uint(pageSize), sort, sortDesc, dateFrom, dateTo)
+	rowCount, timeData := db.GetTimeEntries(userId, dateFrom, dateTo, pagination)
 	res := map[string]interface{}{
 		"data": map[string]interface{}{
 			"rowCount": rowCount,
