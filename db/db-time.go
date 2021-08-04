@@ -37,7 +37,7 @@ var timecols = []string{
 
 // Gets all time entries for a user and the given date range
 func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool, dateFrom, dateTo time.Time) (uint, []models.TimeEntry) {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	queryMid := ` FROM vw_time_entries AS t WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3`
@@ -76,7 +76,7 @@ func GetTimeEntries(userId, pageIndex, pageSize uint, sort string, sortDesc bool
 
 // Gets the time entry with a given id
 func GetTimeEntry(id uint) models.TimeEntry {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	// Create our parameterised SQL query using our vw_time_entries view
@@ -202,7 +202,7 @@ func getTimeEntryRepos(timeEntryId uint, dbConn *sql.DB) []models.RepoItem {
 func CreateTimeEntry(newEntry models.TimeEntry) uint {
 	// Connect to the DB and defer closing the connection until
 	// this function is finished
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	// sp_time_insert stored procedure returns the id of the new time entry
@@ -237,7 +237,7 @@ func UpdateTimeEntry(userId, timeEntryId uint, vals UpdatedTimeEntry) error {
 	}
 
 	// Connect to the database and defer closing until the func ends
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	if vals.Comments != nil {
@@ -323,12 +323,10 @@ func DeleteTimeEntry(userId, timeEntryId uint) error {
 		return err
 	}
 
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 	_, err := dbConn.Exec(`call sp_time_delete($1)`, timeEntryId)
-	helpers.HandleError(err)
-
-	return nil
+	return err
 }
 
 // Checks if the user and time entry ids are valid
@@ -347,7 +345,7 @@ func checkUserIdAndTimeEntryIdValue(userId, timeEntryId uint) error {
 
 // Checks if the user can amend the selected time entry
 func canAmendTimeEntry(userId, timeEntryId uint) bool {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	var timeUserId uint = 0

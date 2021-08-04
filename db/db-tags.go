@@ -7,7 +7,7 @@ import (
 
 // Gets all tags from the DB
 func GetTags(userId uint) []models.Tag {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	rows, err := dbConn.Query("SELECT id, name FROM tbl_tag WHERE userId IS NULL OR userId = $1", userId)

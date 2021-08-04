@@ -10,7 +10,7 @@ import (
 
 // Gets the user id for the selected github user
 func GetUserId(githubUserId string) uint {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	query := `SELECT id FROM tbl_user WHERE githubUserId = $1`
@@ -25,7 +25,7 @@ func GetUserId(githubUserId string) uint {
 
 // Checks if the githubUserId exists in the database
 func GitHubUserExists(githubUserId string) bool {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	query := `SELECT COUNT(*) AS count FROM tbl_user WHERE githubUserId = $1`
@@ -40,7 +40,7 @@ func GitHubUserExists(githubUserId string) bool {
 
 // Creates a new user from the github user details
 func CreateUser(u github.User) models.User {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	name := u.Name
@@ -60,7 +60,7 @@ func CreateUser(u github.User) models.User {
 
 // Gets a user's details from the db by the github login id
 func GetUserByGitHubLogin(githubUserId string) models.User {
-	dbConn := helpers.ConnectDB()
+	dbConn := connectDB()
 	defer dbConn.Close()
 
 	query := `
