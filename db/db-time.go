@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -37,9 +36,7 @@ var timecols = []string{
 
 // Gets all time entries for a user and the given date range
 func GetTimeEntries(userId uint, dateFrom, dateTo time.Time, page Pagination) (uint, []models.TimeEntry) {
-	dbConn := connectDB()
-	defer dbConn.Close()
-
+	dbConn := ConnectDB()
 	queryMid := ` FROM vw_time_entries AS t WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3`
 	rowCount := uint(0)
 	time := []models.TimeEntry{}
@@ -56,7 +53,7 @@ func GetTimeEntries(userId uint, dateFrom, dateTo time.Time, page Pagination) (u
 
 		queryEnd := fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d;", page.Sort, page.SortDirection(), page.GetPageSize(), page.Offset())
 		query = "SELECT " + strings.Join(timecols, ", ") + queryMid + queryEnd
-		time = getTimeEntries(dbConn, query, userId, dateFrom, dateTo)
+		time = getTimeEntries(query, userId, dateFrom, dateTo)
 	}
 
 	// return parsed rows
@@ -65,12 +62,9 @@ func GetTimeEntries(userId uint, dateFrom, dateTo time.Time, page Pagination) (u
 
 // Gets the time entry with a given id
 func GetTimeEntry(id uint) models.TimeEntry {
-	dbConn := connectDB()
-	defer dbConn.Close()
-
 	// Create our parameterised SQL query using our vw_time_entries view
 	query := "SELECT " + strings.Join(timecols, ", ") + " FROM vw_time_entries AS t WHERE t.id = $1;"
-	timeEntries := getTimeEntries(dbConn, query, id)
+	timeEntries := getTimeEntries(query, id)
 
 	var timeEntry models.TimeEntry
 
@@ -78,8 +72,8 @@ func GetTimeEntry(id uint) models.TimeEntry {
 		timeEntry = timeEntries[0]
 
 		// Set the RepoItems and Tags properties to empty arrays
-		timeEntry.Tags = getTimeEntryTags(id, dbConn)
-		timeEntry.RepoItems = getTimeEntryRepos(id, dbConn)
+		timeEntry.Tags = getTimeEntryTags(id)
+		timeEntry.RepoItems = getTimeEntryRepos(id)
 	}
 
 	// Return the parsed time entry
@@ -87,8 +81,9 @@ func GetTimeEntry(id uint) models.TimeEntry {
 }
 
 // Gets the time entries for the given prepared sql query and parameters
-func getTimeEntries(dbConn *sql.DB, query string, args ...interface{}) []models.TimeEntry {
+func getTimeEntries(query string, args ...interface{}) []models.TimeEntry {
 	// Query the db with the above statement and handle any returned errors
+	dbConn := ConnectDB()
 	rows, err := dbConn.Query(query, args)
 	helpers.HandleError(err)
 
@@ -131,10 +126,11 @@ func getTimeEntries(dbConn *sql.DB, query string, args ...interface{}) []models.
 }
 
 // Gets the tags linked to the time entry
-func getTimeEntryTags(timeEntryId uint, dbConn *sql.DB) []models.Tag {
+func getTimeEntryTags(timeEntryId uint) []models.Tag {
 	tags := []models.Tag{}
 
 	// Get the tags for the time entry and handle any returned errors
+	dbConn := ConnectDB()
 	query := `SELECT id, name FROM vw_time_entry_tags WHERE timeentryid = $1`
 	tagRows, err := dbConn.Query(query, timeEntryId)
 	helpers.HandleError(err)
@@ -154,7 +150,7 @@ func getTimeEntryTags(timeEntryId uint, dbConn *sql.DB) []models.Tag {
 }
 
 // Gets the repo items linked to the selected time entry
-func getTimeEntryRepos(timeEntryId uint, dbConn *sql.DB) []models.RepoItem {
+func getTimeEntryRepos(timeEntryId uint) []models.RepoItem {
 	repoItems := []models.RepoItem{}
 	query := `
 		SELECT id, created, updated, itemIdSource, itemType, source, repoName, description
@@ -162,6 +158,7 @@ func getTimeEntryRepos(timeEntryId uint, dbConn *sql.DB) []models.RepoItem {
 		WHERE timeentryid = $1;
 	`
 	// Get the repo items added to the time entry and handle any errors
+	dbConn := ConnectDB()
 	repoRows, err := dbConn.Query(query, timeEntryId)
 	helpers.HandleError(err)
 	defer repoRows.Close()
@@ -189,10 +186,8 @@ func getTimeEntryRepos(timeEntryId uint, dbConn *sql.DB) []models.RepoItem {
 // Creates a new time entry in the database from the passed in models.TimeEntry
 // and returns the id of the new time entry
 func CreateTimeEntry(newEntry models.TimeEntry) uint {
-	// Connect to the DB and defer closing the connection until
-	// this function is finished
-	dbConn := connectDB()
-	defer dbConn.Close()
+	// Connect to the DB
+	dbConn := ConnectDB()
 
 	// sp_time_insert stored procedure returns the id of the new time entry
 	// so call QueryRow with a prepared statement to just grab this value
@@ -210,10 +205,10 @@ func CreateTimeEntry(newEntry models.TimeEntry) uint {
 	helpers.HandleError(err)
 
 	// Insert any tags linked to the time entry
-	insertTags(&newEntry.Tags, newEntry.Id, newEntry.User.Id, dbConn)
+	insertTags(&newEntry.Tags, newEntry.Id, newEntry.User.Id)
 
 	// Insert any repo items for the new time entry
-	insertRepoItem(&newEntry.RepoItems, newEntry.Id, dbConn)
+	insertRepoItem(&newEntry.RepoItems, newEntry.Id)
 
 	// Return the time entries new id
 	return newEntry.Id
@@ -226,22 +221,21 @@ func UpdateTimeEntry(userId, timeEntryId uint, vals UpdatedTimeEntry) error {
 	}
 
 	// Connect to the database and defer closing until the func ends
-	dbConn := connectDB()
-	defer dbConn.Close()
+	dbConn := ConnectDB()
 
 	if vals.Comments != nil {
-		updateTimeProp(timeEntryId, "comments", vals.Comments, dbConn)
+		updateTimeProp(timeEntryId, "comments", vals.Comments)
 	}
 	if vals.Value != nil {
-		updateTimeProp(timeEntryId, "value", vals.Value, dbConn)
+		updateTimeProp(timeEntryId, "value", vals.Value)
 	}
 	if vals.ValueType != nil {
-		updateTimeProp(timeEntryId, "valueType", vals.ValueType, dbConn)
+		updateTimeProp(timeEntryId, "valueType", vals.ValueType)
 	}
 	if vals.Tags != nil {
 		_, err := dbConn.Exec(`DELETE FROM tbl_timeentrytaglinks WHERE timeentryid = $1`, vals.ValueType, timeEntryId)
 		helpers.HandleError(err)
-		insertTags(vals.Tags, timeEntryId, userId, dbConn)
+		insertTags(vals.Tags, timeEntryId, userId)
 	}
 	if vals.RepoItems != nil {
 		rows, err := dbConn.Query(`SELECT id FROM tbl_repoitem WHERE timeEntryId = $1`, timeEntryId)
@@ -268,17 +262,18 @@ func UpdateTimeEntry(userId, timeEntryId uint, vals UpdatedTimeEntry) error {
 		}
 
 		// Add in any new repo items
-		insertRepoItem(vals.RepoItems, timeEntryId, dbConn)
+		insertRepoItem(vals.RepoItems, timeEntryId)
 	}
 
 	return nil
 }
 
 // Links the tags to the time entry, inserting any new user created tags into the tags table
-func insertTags(tags *[]models.Tag, timeEntryId, userId uint, dbConn *sql.DB) {
+func insertTags(tags *[]models.Tag, timeEntryId, userId uint) {
 	// loop through the tags added to the entry and add the new tags
 	// and/or the link between the tags and time entry using our
 	// sp_time_tags_insert stored procedure
+	dbConn := ConnectDB()
 	query := `call sp_time_tags_insert($1, $2, $3, $4)`
 	for _, tag := range *tags {
 		dbConn.Exec(query, timeEntryId, tag.Name, tag.Id, userId)
@@ -286,7 +281,8 @@ func insertTags(tags *[]models.Tag, timeEntryId, userId uint, dbConn *sql.DB) {
 }
 
 // Adds any new repo items to the selected time entry
-func insertRepoItem(repoItems *[]models.RepoItem, timeEntryId uint, dbConn *sql.DB) {
+func insertRepoItem(repoItems *[]models.RepoItem, timeEntryId uint) {
+	dbConn := ConnectDB()
 	query := `call sp_time_repoitem_insert($1, $2, $3, $4, $5, $6, $7)`
 
 	// Loop through the linked repository items to the database with a link to this
@@ -300,7 +296,8 @@ func insertRepoItem(repoItems *[]models.RepoItem, timeEntryId uint, dbConn *sql.
 
 // Updates the selected property on the time entry with the new value
 // handles any errors returned from the DB
-func updateTimeProp(timeEntryId uint, propName string, value interface{}, dbConn *sql.DB) {
+func updateTimeProp(timeEntryId uint, propName string, value interface{}) {
+	dbConn := ConnectDB()
 	query := `UPDATE tbl_timeentry SET updated = NOW(), ` + propName + ` = $1 WHERE id = $2`
 	_, err := dbConn.Exec(query, value, timeEntryId)
 	helpers.HandleError(err)
@@ -312,8 +309,7 @@ func DeleteTimeEntry(userId, timeEntryId uint) error {
 		return err
 	}
 
-	dbConn := connectDB()
-	defer dbConn.Close()
+	dbConn := ConnectDB()
 	_, err := dbConn.Exec(`call sp_time_delete($1)`, timeEntryId)
 	return err
 }
@@ -321,22 +317,20 @@ func DeleteTimeEntry(userId, timeEntryId uint) error {
 // Checks if the user and time entry ids are valid
 func checkUserIdAndTimeEntryIdValue(userId, timeEntryId uint) error {
 	if timeEntryId == 0 {
-		return errors.New("Invalid time entry Id")
+		return errors.New("invalid time entry Id")
 	}
 	if userId == 0 {
-		return errors.New("Invalid user id")
+		return errors.New("invalid user id")
 	}
 	if !canAmendTimeEntry(userId, timeEntryId) {
-		return errors.New("Access denied: cannot amend the selected time entry")
+		return errors.New("access denied: cannot amend the selected time entry")
 	}
 	return nil
 }
 
 // Checks if the user can amend the selected time entry
 func canAmendTimeEntry(userId, timeEntryId uint) bool {
-	dbConn := connectDB()
-	defer dbConn.Close()
-
+	dbConn := ConnectDB()
 	var timeUserId uint = 0
 	row := dbConn.QueryRow(`SELECT userId FROM tbl_timeentry WHERE id = $1`, timeEntryId)
 	err := row.Scan(&timeUserId)

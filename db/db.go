@@ -57,7 +57,7 @@ func generatePsqlConnStr() string {
 
 // Connects to the PostgreSQL DB and returns the open connection,
 // handling any errors that may occur
-func connectDB() *sql.DB {
+func ConnectDB() *sql.DB {
 	var err error
 
 	if dbConnection != nil {
@@ -71,4 +71,11 @@ func connectDB() *sql.DB {
 	}
 
 	return dbConnection
+}
+
+// Closes the open database connection
+func CloseDB() {
+	if dbConnection != nil {
+		dbConnection.Close()
+	}
 }

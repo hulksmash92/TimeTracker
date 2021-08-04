@@ -5,11 +5,17 @@ import (
 
 	"github.com/joho/godotenv"
 
+	"timetracker/db"
 	"timetracker/routes"
 )
 
 func main() {
 	initDotEnv()
+
+	// open a new db connection and defer closing until the end of main()
+	db.ConnectDB()
+	defer db.CloseDB()
+
 	routes.ListenAndServe()
 }
 

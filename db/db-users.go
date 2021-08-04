@@ -10,9 +10,7 @@ import (
 
 // Gets the user id for the selected github user
 func GetUserId(githubUserId string) uint {
-	dbConn := connectDB()
-	defer dbConn.Close()
-
+	dbConn := ConnectDB()
 	query := `SELECT id FROM tbl_user WHERE githubUserId = $1`
 	row := dbConn.QueryRow(query, githubUserId)
 
@@ -25,9 +23,7 @@ func GetUserId(githubUserId string) uint {
 
 // Checks if the githubUserId exists in the database
 func GitHubUserExists(githubUserId string) bool {
-	dbConn := connectDB()
-	defer dbConn.Close()
-
+	dbConn := ConnectDB()
 	query := `SELECT COUNT(*) AS count FROM tbl_user WHERE githubUserId = $1`
 	row := dbConn.QueryRow(query, githubUserId)
 
@@ -40,9 +36,7 @@ func GitHubUserExists(githubUserId string) bool {
 
 // Creates a new user from the github user details
 func CreateUser(u github.User) models.User {
-	dbConn := connectDB()
-	defer dbConn.Close()
-
+	dbConn := ConnectDB()
 	name := u.Name
 	if name == nil {
 		name = u.Login
@@ -60,9 +54,7 @@ func CreateUser(u github.User) models.User {
 
 // Gets a user's details from the db by the github login id
 func GetUserByGitHubLogin(githubUserId string) models.User {
-	dbConn := connectDB()
-	defer dbConn.Close()
-
+	dbConn := ConnectDB()
 	query := `
 		SELECT id, name, coalesce(email, '') AS email, created, updated, githubUserId, avatar 
 		FROM tbl_user 
