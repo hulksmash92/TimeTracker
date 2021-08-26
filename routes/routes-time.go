@@ -46,7 +46,7 @@ func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 	}
 	pageSize, err := strconv.ParseUint(r.URL.Query().Get("pageSize"), 10, 32)
 	if err != nil {
-		pageSize = 0
+		pageSize = 10
 	}
 	sort := r.URL.Query().Get("sort")
 	if sort == "" {

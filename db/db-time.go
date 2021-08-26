@@ -43,7 +43,7 @@ func GetTimeEntries(userId uint, dateFrom, dateTo time.Time, page Pagination) (u
 
 	query := "SELECT COUNT(*) " + queryMid
 	row := dbConn.QueryRow(query, userId, dateFrom, dateTo)
-	err := row.Scan(rowCount)
+	err := row.Scan(&rowCount)
 	helpers.HandleError(err)
 
 	if rowCount > 0 {

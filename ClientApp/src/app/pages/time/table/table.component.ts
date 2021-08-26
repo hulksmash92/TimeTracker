@@ -13,21 +13,39 @@ import { TimeEntry } from 'src/app/models/time-entry';
 export class TableComponent implements AfterViewInit {
   @Input() set data(d: TimeEntry[]) {
     if (!d || d.length === 0) {
-      this.dataSource.data = [];
+      this.dataSource = [];
     } else {
-      this.dataSource.data = [...d];
+      this.dataSource = [...d];
     }
+  }
+  @Input() set rowCount(v: number) {
+    this.count = v ?? this.dataSource.length;
   }
   @Output() deleteItem: EventEmitter<number> = new EventEmitter<number>();
   @Output() updateItem: EventEmitter<TimeEntry> = new EventEmitter<TimeEntry>();
+  @Output() sortChange: EventEmitter<void> = new EventEmitter<void>();
+  @Output() pageChange: EventEmitter<void> = new EventEmitter<void>();
+
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
-  dataSource: MatTableDataSource<TimeEntry> = new MatTableDataSource<TimeEntry>([]);
+  dataSource: TimeEntry[] = [];
+  count: number = 0;
   displayedColumns: string[] = ['organisation', 'comments', 'created', 'updated', 'value', 'menu'];
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    this.paginator.page.subscribe({
+      next: () => this.pageChange.emit()
+    });
+
+    this.sort.sortChange.subscribe({
+      next: () => {
+        if (this.paginator.pageIndex !== 0) {
+          this.paginator.firstPage();
+        } else {
+          this.sortChange.emit();
+        }
+      }
+    });
   }
 
 }

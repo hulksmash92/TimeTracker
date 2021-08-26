@@ -1,11 +1,13 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 import { merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
+import { PaginatedTable } from 'src/app/models/paginated-table';
 
 import { TimeEntry } from 'src/app/models/time-entry';
 import { TimeService } from 'src/app/services/time/time.service';
+import { TableComponent } from './table/table.component';
 
 @Component({
   selector: 'app-time',
@@ -13,12 +15,21 @@ import { TimeService } from 'src/app/services/time/time.service';
   styleUrls: ['./time.component.scss']
 })
 export class TimeComponent implements OnInit, OnDestroy {
+  @ViewChild('table') table: TableComponent;
   private filterSub: Subscription = new Subscription();
   showForm: boolean;
   data: TimeEntry[] = [];
+  rowCount: number = 0;
   editing: TimeEntry;
   dateFrom: FormControl = new FormControl(null);
   dateTo: FormControl = new FormControl(null);
+
+  get tableSort() {
+    return this.table?.sort;
+  }
+  get tablePaginator() {
+    return this.table?.paginator;
+  }
 
   constructor(private readonly timeService: TimeService) {
     this.resetParams();
@@ -59,9 +70,14 @@ export class TimeComponent implements OnInit, OnDestroy {
     const dtT: Date = this.dateTo.value;
     
     if (!!dtF && !!dtT) {
-      this.timeService.get(dtF, dtT)
-        .subscribe((res: TimeEntry[]) => {
-          this.data = res;
+      const { pageIndex, pageSize } = this.tablePaginator;
+      const { active, direction } = this.tableSort;
+      const sortDesc = direction !== 'asc';
+
+      this.timeService.get(dtF, dtT, pageIndex, pageSize, active, sortDesc)
+        .subscribe((res: PaginatedTable<TimeEntry>) => {
+          this.data = res.page;
+          this.rowCount = res.rowCount;
         });
     }
   }

@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { PaginatedTable } from 'src/app/models/paginated-table';
 import { Tag } from 'src/app/models/tag';
-
 import { TimeEntry } from 'src/app/models/time-entry';
 
 const headers = new HttpHeaders({
@@ -36,7 +36,7 @@ export class TimeService {
    * 
    * @returns array of the time entries
    */
-  get(from: Date, to: Date): Observable<TimeEntry[]> {
+  get(from: Date, to: Date, pageIndex: number, pageSize: number, sort: string, sortDesc: boolean): Observable<PaginatedTable<TimeEntry>> {
     let params = new HttpParams();
     if (!!from) {
       params = params.append('from', from.toISOString());
@@ -44,6 +44,10 @@ export class TimeService {
     if (!!to) {
       params = params.append('to', to.toISOString());
     }
+    params = params.append('pageIndex', `${(pageIndex ?? 0)}`);
+    params = params.append('pageSize', `${(pageSize ?? 10)}`);
+    params = params.append('sort', `${(sort || 'created')}`);
+    params = params.append('sortDesc', `${(sortDesc ?? true)}`);
 
     return this.http.get(this.API_URL, { params }).pipe(
       map((res: any) => res?.data || [])

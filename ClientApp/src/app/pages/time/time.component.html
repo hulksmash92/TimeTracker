@@ -17,7 +17,11 @@
         </button>
     </div>
 
-    <time-table [data]="data"
+    <time-table #table
+                [data]="data"
+                [rowCount]="rowCount"
+                (sortChange)="get()"
+                (pageChange)="get()"
                 (updateItem)="editing = $event;"
                 (deleteItem)="delete($event)">
     </time-table>
