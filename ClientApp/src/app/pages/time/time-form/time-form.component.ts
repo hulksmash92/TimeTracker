@@ -7,10 +7,10 @@ import { TimeService } from 'src/app/services/time/time.service';
 
 @Component({
   selector: 'time-form',
-  templateUrl: './form.component.html',
-  styleUrls: ['./form.component.scss']
+  templateUrl: './time-form.component.html',
+  styleUrls: ['./time-form.component.scss']
 })
-export class FormComponent implements OnInit {
+export class TimeFormComponent implements OnInit {
   @Output() cancel: EventEmitter<void> = new EventEmitter<void>();
   readonly valueTypes: string[] = ['Hours', 'Minutes', 'Units'];
   tagOptions: Tag[] = [];

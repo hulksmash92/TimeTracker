@@ -5,7 +5,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 
 import { TimeComponent } from './time.component';
-import { FormComponent } from './form/form.component';
+import { TimeFormComponent } from './time-form/time-form.component';
 import { TimeTableComponent } from './time-table/time-table.component';
 import { TimeRoutingModule } from './time-routing.module';
 import { MaterialModule } from 'src/app/modules/material/material.module';
@@ -16,7 +16,7 @@ import { TimeFormTagsComponent } from './components/time-form-tags/time-form-tag
 @NgModule({
   declarations: [
     TimeComponent,
-    FormComponent,
+    TimeFormComponent,
     TimeTableComponent,
     RepoSearchComponent,
     RepoItemSearchComponent,

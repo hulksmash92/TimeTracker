@@ -3,9 +3,6 @@ import { FormControl } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { MatChipInputEvent } from '@angular/material/chips';
 
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
-
 import { Tag } from 'src/app/models/tag';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
