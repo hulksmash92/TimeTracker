@@ -2,10 +2,12 @@ import { Location as NgLocationService } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { of } from 'rxjs';
 
-import { MaterialModule } from 'src/app/modules/material/material.module';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { UserService } from 'src/app/services/user/user.service';
 import { MockAuthService, MockUserService } from 'src/app/testing';
@@ -38,8 +40,10 @@ describe('UserMenuComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ UserMenuComponent ],
       imports: [
-        RouterTestingModule,
-        MaterialModule,
+        RouterTestingModule.withRoutes([]),
+        MatButtonModule,
+        MatIconModule,
+        MatMenuModule,
         AvatarModule
       ],
       providers: [

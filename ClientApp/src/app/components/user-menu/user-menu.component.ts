@@ -13,6 +13,9 @@ import { UserService } from 'src/app/services/user/user.service';
 })
 export class UserMenuComponent implements OnInit {
   
+  /**
+   * Currently logged in user
+   */
   get user(): User {
     return this.authService.user;
   }
