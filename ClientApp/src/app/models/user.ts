@@ -9,6 +9,6 @@ export interface User {
     updated: Date;
     githubUserId: string;
     avatar: string;
-    organisation: Organisation[];
-    apiClient: ApiClient[];
+    organisations: Organisation[];
+    apiClients: ApiClient[];
 }
