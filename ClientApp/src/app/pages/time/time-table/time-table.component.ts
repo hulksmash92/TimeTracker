@@ -1,16 +1,15 @@
 import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
 
 import { TimeEntry } from 'src/app/models/time-entry';
 
 @Component({
   selector: 'time-table',
-  templateUrl: './table.component.html',
-  styleUrls: ['./table.component.scss']
+  templateUrl: './time-table.component.html',
+  styleUrls: ['./time-table.component.scss']
 })
-export class TableComponent implements AfterViewInit {
+export class TimeTableComponent implements AfterViewInit {
   @Input() set data(d: TimeEntry[]) {
     if (!d || d.length === 0) {
       this.dataSource = [];

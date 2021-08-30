@@ -9,7 +9,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PaginatedTable } from 'src/app/models/paginated-table';
 import { TimeEntry } from 'src/app/models/time-entry';
 import { TimeService } from 'src/app/services/time/time.service';
-import { TableComponent } from './table/table.component';
+import { TimeTableComponent } from './time-table/time-table.component';
 
 @Component({
   selector: 'app-time',
@@ -17,7 +17,7 @@ import { TableComponent } from './table/table.component';
   styleUrls: ['./time.component.scss']
 })
 export class TimeComponent implements OnInit, OnDestroy {
-  @ViewChild('table') table: TableComponent;
+  @ViewChild('table') table: TimeTableComponent;
   private filterSub: Subscription = new Subscription();
   showForm: boolean;
   data: TimeEntry[] = [];

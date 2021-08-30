@@ -6,7 +6,7 @@ import { MatChipsModule } from '@angular/material/chips';
 
 import { TimeComponent } from './time.component';
 import { FormComponent } from './form/form.component';
-import { TableComponent } from './table/table.component';
+import { TimeTableComponent } from './time-table/time-table.component';
 import { TimeRoutingModule } from './time-routing.module';
 import { MaterialModule } from 'src/app/modules/material/material.module';
 import { RepoSearchComponent } from './components/repo-search/repo-search.component';
@@ -17,7 +17,7 @@ import { TimeFormTagsComponent } from './components/time-form-tags/time-form-tag
   declarations: [
     TimeComponent,
     FormComponent,
-    TableComponent,
+    TimeTableComponent,
     RepoSearchComponent,
     RepoItemSearchComponent,
     TimeFormTagsComponent
