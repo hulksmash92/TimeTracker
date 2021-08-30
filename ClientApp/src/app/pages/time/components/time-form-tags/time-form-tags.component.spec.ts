@@ -4,7 +4,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 
 import { TimeFormTagsComponent } from './time-form-tags.component';
 
@@ -21,7 +20,6 @@ describe('TimeFormTagsComponent', () => {
         MatAutocompleteModule,
         MatChipsModule,
         MatFormFieldModule,
-        MatInputModule
       ]
     })
     .compileComponents();

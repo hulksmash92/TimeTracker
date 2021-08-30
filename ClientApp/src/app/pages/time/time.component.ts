@@ -72,9 +72,10 @@ export class TimeComponent implements OnInit, OnDestroy {
     const dtT: Date = this.dateTo.value;
     
     if (!!dtF && !!dtT) {
-      const { pageIndex, pageSize } = this.tablePaginator;
-      const { active, direction } = this.tableSort;
-      const sortDesc = direction !== 'asc';
+      const pageIndex = this.tablePaginator?.pageIndex ?? 0;
+      const pageSize = this.tablePaginator?.pageSize ?? 10;
+      const active = this.tableSort?.active;
+      const sortDesc = this.tableSort?.direction !== 'asc';
 
       this.timeService.get(dtF, dtT, pageIndex, pageSize, active, sortDesc)
         .subscribe((res: PaginatedTable<TimeEntry>) => {

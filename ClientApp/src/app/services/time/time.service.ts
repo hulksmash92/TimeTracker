@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+
 import { PaginatedTable } from 'src/app/models/paginated-table';
 import { Tag } from 'src/app/models/tag';
 import { TimeEntry } from 'src/app/models/time-entry';

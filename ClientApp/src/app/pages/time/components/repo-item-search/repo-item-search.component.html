@@ -1,5 +1,5 @@
 <div class="p-2">
-    Repository: {{ repo.fullName }}
+    Repository: {{ repo?.fullName }}
 </div>
 
 <div class="d-flex">
@@ -14,8 +14,8 @@
     <mat-form-field class="flex-fill px-1" appearance="outline" *ngIf="itemType === 'commit'">
         <mat-label>Created Between</mat-label>
         <mat-date-range-input [rangePicker]="dtRangePicker">
-            <input matStartDate placeholder="From" [formControl]="itemFrom">
-            <input matEndDate placeholder="To" [formControl]="itemTo">
+            <input matStartDate placeholder="From" name="repoItemFromDt" [formControl]="itemFrom">
+            <input matEndDate placeholder="To" name="repoItemToDt" [formControl]="itemTo">
         </mat-date-range-input>
         <mat-datepicker-toggle matSuffix [for]="dtRangePicker"></mat-datepicker-toggle>
         <mat-date-range-picker #dtRangePicker></mat-date-range-picker>
@@ -34,6 +34,6 @@
 
 <mat-selection-list>
     <mat-list-option *ngFor="let item of repoItems" [value]="item">
-        {{ itemType === 'commit' ? item.message : item.name }}
+        {{ itemType === 'commit' ? item?.message : item?.name }}
     </mat-list-option>
 </mat-selection-list>

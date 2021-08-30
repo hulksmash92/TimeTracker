@@ -31,7 +31,7 @@ export class RepoItemSearchComponent {
   itemTo: FormControl = new FormControl();
 
   get itemType(): string {
-    return this.repoItemType.value;
+    return this.repoItemType?.value;
   }
 
   get searchBtnDisabled(): boolean {
@@ -39,8 +39,8 @@ export class RepoItemSearchComponent {
       || (
         this.itemType === 'commit' 
         && (
-          !!this.itemFrom.value
-          || !!this.itemTo.value
+          !!this.itemFrom?.value
+          || !!this.itemTo?.value
         )
       );
   }
@@ -49,8 +49,8 @@ export class RepoItemSearchComponent {
 
   getRepoItems(): void {
     if (!!this.repo && !!this.itemType) {
-      const from: Date = this.itemFrom.value;
-      const to: Date = this.itemFrom.value;
+      const from: Date = this.itemFrom?.value;
+      const to: Date = this.itemFrom?.value;
 
       this.repoService.getGitHubRepoItems(this.repo.owner, this.repo.name, this.itemType, from, to)
         .subscribe((res: any[]) => {
@@ -89,7 +89,7 @@ export class RepoItemSearchComponent {
       itemType,
       description,
       source: this.source,
-      repoName: this.repo.fullName
+      repoName: this.repo?.fullName
     };
     return newRepoItem;
   }
