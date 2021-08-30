@@ -171,5 +171,8 @@ describe('UserMenuComponent', () => {
       expect(goSpy).not.toHaveBeenCalledWith();
     });
   });
+
+
+  // TODO: Add tests for component template
   
 });

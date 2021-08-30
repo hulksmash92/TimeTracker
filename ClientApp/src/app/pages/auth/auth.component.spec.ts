@@ -31,4 +31,6 @@ describe('AuthComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  // TODO: test component logic
 });

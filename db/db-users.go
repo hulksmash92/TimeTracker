@@ -108,3 +108,5 @@ func readUserFromSqlRow(row *sql.Row) models.User {
 
 	return user
 }
+
+// TODO: Add user modification

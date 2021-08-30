@@ -49,6 +49,8 @@ func configureRouter() *mux.Router {
 	router.HandleFunc("/api/time/{id}", timeRouteHandler).Methods(http.MethodPatch, http.MethodDelete)
 	router.HandleFunc("/api/time/tags", getTags).Methods(http.MethodGet)
 
+	// TODO: add dashboard routes
+
 	// Configure the static file serving for the SPA
 	// This must be configured after API routes to stop any /api/
 	// requests being redirected to our SPA

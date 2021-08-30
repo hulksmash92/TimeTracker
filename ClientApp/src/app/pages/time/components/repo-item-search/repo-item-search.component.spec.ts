@@ -48,4 +48,9 @@ describe('RepoItemSearchComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  // TODO: Test component logic
+
+  // TODO: Test component template logic
+
 });

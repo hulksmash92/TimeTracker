@@ -20,3 +20,5 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
+
+// TODO: Add user modification endpoints calling funcs in db-users.go file

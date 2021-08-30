@@ -15,5 +15,6 @@ export class UserService {
     return this.http.get(`/api/user`, { withCredentials: true });
   }
 
+  // TODO: Add user modification calls
 
 }
