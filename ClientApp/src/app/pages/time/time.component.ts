@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 
 import { merge, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
-import { PaginatedTable } from 'src/app/models/paginated-table';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
+import { PaginatedTable } from 'src/app/models/paginated-table';
 import { TimeEntry } from 'src/app/models/time-entry';
 import { TimeService } from 'src/app/services/time/time.service';
 import { TableComponent } from './table/table.component';
@@ -24,10 +26,10 @@ export class TimeComponent implements OnInit, OnDestroy {
   dateFrom: FormControl = new FormControl(null);
   dateTo: FormControl = new FormControl(null);
 
-  get tableSort() {
+  get tableSort(): MatSort {
     return this.table?.sort;
   }
-  get tablePaginator() {
+  get tablePaginator(): MatPaginator {
     return this.table?.paginator;
   }
 
@@ -139,6 +141,9 @@ export class TimeComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Resets the view to the table, closing the form if its open
+   */
   resetView(): void {
     this.showForm = false;
     this.editing = null;
