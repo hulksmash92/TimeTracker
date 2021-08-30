@@ -43,6 +43,8 @@ describe('UserMenuComponent', () => {
         AvatarModule
       ],
       providers: [
+        // Mock our UserService and AuthService dependencies to avoid having 
+        // to import the HttpClient module to simplify our tests
         { provide: UserService, useClass: MockUserService },
         { provide: AuthService, useClass: MockAuthService }
       ]
@@ -60,7 +62,19 @@ describe('UserMenuComponent', () => {
     fixture.detectChanges();
   });
 
-  
+  it('#user getter should return #authService.user value', () => {
+    // test null user value
+    authService.user = null;
+    expect(component.user).toBeNull();
+
+    // test undefined user value
+    authService.user = undefined;
+    expect(component.user).toBeUndefined();
+
+    // test a valid user object using the mockUser value above
+    authService.user = mockUser;
+    expect(component.user).toEqual(mockUser);
+  });
 
   describe('#ngOnInit()', () => {
     let userGetSpy: jasmine.Spy;
