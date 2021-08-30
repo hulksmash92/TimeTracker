@@ -29,10 +29,14 @@ export class TimeService {
   }
 
   /**
-   * Gets all time entries for the selected conditions
+   * Gets a page of time entries for the selected conditions
    * 
-   * @param from date range start
-   * @param to date range end
+   * @param from date range start to filter on
+   * @param to date range end to filter on
+   * @param pageIndex index of the current page (starts at 0)
+   * @param pageSize number of records per page
+   * @param sort name of the column to sort by
+   * @param sortDesc whether to sort descending or not
    * 
    * @returns array of the time entries
    */
