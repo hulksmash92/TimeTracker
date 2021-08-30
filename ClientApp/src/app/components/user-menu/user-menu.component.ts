@@ -1,3 +1,4 @@
+import { Location as NgLocationService } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -19,7 +20,8 @@ export class UserMenuComponent implements OnInit {
   constructor(
     private readonly userService: UserService, 
     private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly locationService: NgLocationService
   ) { }
 
   ngOnInit(): void {
@@ -36,8 +38,8 @@ export class UserMenuComponent implements OnInit {
   handleGitHubLogin(): void {
     this.authService.gitHubUrl()
       .subscribe((loginUrl: string) => {
-        if (loginUrl) {
-          window.location.href = loginUrl;
+        if (!!loginUrl) {
+          this.locationService.go(loginUrl);
         }
       });
   }
