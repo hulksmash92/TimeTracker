@@ -1,14 +1,32 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
+
+import { of } from 'rxjs';
 
 import { AuthComponent } from './auth.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { MockAuthService } from 'src/app/testing';
+import { User } from 'src/app/models/user';
+
+// Create a mock user object for testing
+const mockUser: User = {
+  id: 1,
+  githubUserId: 'hulksmash92',
+  name: 'Alex Deakins',
+  email: 'user@example.com',
+  created: new Date(),
+  updated: new Date(),
+  avatar: null,
+  organisations: [],
+  apiClients: []
+};
 
 describe('AuthComponent', () => {
   let component: AuthComponent;
   let fixture: ComponentFixture<AuthComponent>;
   let authService: AuthService;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -26,6 +44,7 @@ describe('AuthComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(AuthComponent);
     authService = TestBed.inject(AuthService);
+    router = TestBed.inject(Router);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -62,5 +81,47 @@ describe('AuthComponent', () => {
   });
 
   // TODO: test getAccessToken()
+  describe('#getAccessToken()', () => {
+    let loginGitHubSpy: jasmine.Spy;
+    let navigateSpy: jasmine.Spy;
+
+    beforeEach(() => {
+      loginGitHubSpy = spyOn(authService, 'loginGitHub');
+      navigateSpy = spyOn(router, 'navigate').and.callFake((commands: any[], extras?: any) => Promise.resolve(true));
+    });
+
+    it('should call #authService.loginGitHub() with session code and set authService.user to response', () => {
+      const mockSessionCode = 'abc1234def56';
+
+      // initialise the user property in authService to null
+      authService.user = null;
+      
+      // mock the return value of the AuthService.loginGitHub() to a fake user value
+      loginGitHubSpy.and.returnValue(of(mockUser));
+
+      // call the getAccessToken() method for testing
+      component.getAccessToken(mockSessionCode);
+
+      // assert that the service method called with the correct value
+      expect(loginGitHubSpy).toHaveBeenCalledWith(mockSessionCode);
+
+      // assert that user has been set correctly
+      expect(authService.user).toEqual(mockUser);
+
+      // assert that the user is being redirected to /time
+      expect(navigateSpy).toHaveBeenCalledWith(['/time']);
+    });
+
+    it('should not call #router.navigate() when #authService.loginGitHub() response is falsy', () => {
+      // mock the return value of the AuthService.loginGitHub() to a null value
+      loginGitHubSpy.and.returnValue(of(null));
+
+      // call the getAccessToken() method for testing
+      component.getAccessToken('abc1234def56');
+
+      // assert router navigation has not been called
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+  });
 
 });
