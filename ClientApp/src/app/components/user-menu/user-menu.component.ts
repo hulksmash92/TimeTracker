@@ -1,10 +1,10 @@
-import { Location as NgLocationService } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { User } from 'src/app/models/user';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { UserService } from 'src/app/services/user/user.service';
+import { WindowService } from 'src/app/services/window/window.service';
 
 @Component({
   selector: 'user-menu',
@@ -23,8 +23,8 @@ export class UserMenuComponent implements OnInit {
   constructor(
     private readonly userService: UserService, 
     private readonly authService: AuthService,
+    private readonly windowService: WindowService,
     private readonly router: Router,
-    private readonly locationService: NgLocationService
   ) { }
 
   ngOnInit(): void {
@@ -42,7 +42,7 @@ export class UserMenuComponent implements OnInit {
     this.authService.gitHubUrl()
       .subscribe((loginUrl: string) => {
         if (!!loginUrl) {
-          this.locationService.go(loginUrl);
+          this.windowService.goExternal(loginUrl);
         }
       });
   }
