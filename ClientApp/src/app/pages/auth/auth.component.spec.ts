@@ -53,6 +53,8 @@ describe('AuthComponent', () => {
     let unsubscribeSpy: jasmine.Spy;
 
     beforeEach(() => {
+      // Spy on the unsubscribe method on the route query param subscription
+      // so we can check if its been called correctly
       unsubscribeSpy = spyOn(component.routeQuerySub, 'unsubscribe');
     });
 
@@ -80,13 +82,17 @@ describe('AuthComponent', () => {
     });
   });
 
-  // TODO: test getAccessToken()
   describe('#getAccessToken()', () => {
     let loginGitHubSpy: jasmine.Spy;
     let navigateSpy: jasmine.Spy;
 
     beforeEach(() => {
+      // Spy on the loginGitHub method on AuthService so we can check if its been 
+      // called correctly and mock the returned values for certain edge cases
       loginGitHubSpy = spyOn(authService, 'loginGitHub');
+
+      // Spy on the Router.navigate() method and replace its
+      // implementation with a mock func
       navigateSpy = spyOn(router, 'navigate').and.callFake((commands: any[], extras?: any) => Promise.resolve(true));
     });
 
