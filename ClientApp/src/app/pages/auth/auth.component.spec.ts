@@ -8,6 +8,7 @@ import { MockAuthService } from 'src/app/testing';
 describe('AuthComponent', () => {
   let component: AuthComponent;
   let fixture: ComponentFixture<AuthComponent>;
+  let authService: AuthService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -24,13 +25,42 @@ describe('AuthComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AuthComponent);
+    authService = TestBed.inject(AuthService);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  describe('#ngOnDestroy()', () => {
+    let unsubscribeSpy: jasmine.Spy;
+
+    beforeEach(() => {
+      unsubscribeSpy = spyOn(component.routeQuerySub, 'unsubscribe');
+    });
+
+    it('should call #routeQuerySub.unsubscribe() when #routeQuerySub.closed is false', () => {
+      // Set the closed prop to false on the #routeQuerySub subscription
+      component.routeQuerySub.closed = false;
+
+      // Call ngOnDestroy()
+      component.ngOnDestroy();
+
+      // assert that the unsubscribe method was called
+      expect(unsubscribeSpy).toHaveBeenCalled();
+    });
+
+    it('should not call #routeQuerySub.unsubscribe() when #routeQuerySub.closed is true', () => {
+      // Set the closed prop to true on the #routeQuerySub subscription
+      // to indicate that the subscription is now closed
+      component.routeQuerySub.closed = true;
+
+      // Call ngOnDestroy()
+      component.ngOnDestroy();
+
+      // assert that the unsubscribe method was called
+      expect(unsubscribeSpy).not.toHaveBeenCalled();
+    });
   });
 
-  // TODO: test component logic
+  // TODO: test getAccessToken()
+
 });

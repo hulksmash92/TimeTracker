@@ -11,7 +11,13 @@ import { AuthService } from 'src/app/services/auth/auth.service';
   styleUrls: ['./auth.component.scss']
 })
 export class AuthComponent implements OnDestroy {
-  private routeQuerySub = new Subscription();
+  /**
+   * Holds the subscription for checking the query params
+   * in the  current route if any exist.
+   * Such as the session code returned in the URL by 
+   * GitHub after auth redirect.
+   */
+  readonly routeQuerySub = new Subscription();
 
   constructor(
     route: ActivatedRoute, 
@@ -29,11 +35,18 @@ export class AuthComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     if (!this.routeQuerySub.closed) {
+      // Teardown the route query param subscription
       this.routeQuerySub.unsubscribe();
     }
   }
 
-  private getAccessToken(sessionCode: string): void {
+  /**
+   * Sets the users details in the app and the access token using the session 
+   * code returned by GitHub after successful authentication with OAuth
+   * 
+   * @param sessionCode the session code returned by GitHub 
+   */
+  getAccessToken(sessionCode: string): void {
     this.authService.loginGitHub(sessionCode)
       .subscribe((res: any) => {
         this.authService.user = res;
