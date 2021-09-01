@@ -9,8 +9,7 @@ import { of } from 'rxjs';
 
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { UserService } from 'src/app/services/user/user.service';
-import { WindowService } from 'src/app/services/window/window.service';
-import { MockAuthService, MockUserService, MockWindowService } from 'src/app/testing';
+import { MockAuthService, MockUserService } from 'src/app/testing';
 import { AvatarModule } from 'src/app/components/avatar';
 import { UserMenuComponent } from './user-menu.component';
 import { User } from 'src/app/models/user';
@@ -33,7 +32,6 @@ describe('UserMenuComponent', () => {
   let fixture: ComponentFixture<UserMenuComponent>;
   let authService: AuthService;
   let userService: UserService;
-  let windowService: WindowService;
   let router: Router;
 
   beforeEach(async () => {
@@ -47,9 +45,8 @@ describe('UserMenuComponent', () => {
         AvatarModule
       ],
       providers: [
-        // Mock our WindowService, UserService and AuthService dependencies to avoid having 
+        // Mock our UserService and AuthService dependencies to avoid having 
         // to import the HttpClient module to simplify our tests
-        { provide: WindowService, useClass: MockWindowService },
         { provide: UserService, useClass: MockUserService },
         { provide: AuthService, useClass: MockAuthService }
       ]
@@ -61,7 +58,6 @@ describe('UserMenuComponent', () => {
     fixture = TestBed.createComponent(UserMenuComponent);
     authService = TestBed.inject(AuthService);
     userService = TestBed.inject(UserService);
-    windowService = TestBed.inject(WindowService);
     router = TestBed.inject(Router);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -125,54 +121,19 @@ describe('UserMenuComponent', () => {
     });
   });
 
-  describe('#handleGitHubLogin()', () => {
-    let gitHubUrlSpy: jasmine.Spy;
-    let goExternalSpy: jasmine.Spy;
+  it('#handleGitHubLogin() should call AuthService.gitHubLogin()', () => {
+    // Spy on our AuthService.gitHubUrl() method
+    const gitHubLoginSpy = spyOn(authService, 'gitHubLogin');
 
-    beforeEach(() => {
-      // Spy on our AuthService.gitHubUrl() method
-      gitHubUrlSpy = spyOn(authService, 'gitHubUrl');
+    // Mock the return value to be an empty promise
+    gitHubLoginSpy.and.returnValue(Promise.resolve());
 
-      // spy on the WindowService.goExternal() method 
-      // and replace the implementation with a mock func
-      const mockGoFn = (url: string) => {};
-      goExternalSpy = spyOn(windowService, 'goExternal').and.callFake(mockGoFn);
-    });
+    // Call the #handleGitHubLogin() method we're testing
+    component.handleGitHubLogin();
 
-    it('should call locationService.go() when AuthService.gitHubUrl() returns a truthy value', () => {
-      // Valid mock url
-      const mockUrl = 'https://github.com/login/oauth/authorize?clientId=gh123456&scopes=user:email';
-
-      // mock the return value of the AuthService.gitHubUrl() 
-      // method using our spy by chaining `and.returnValue()`
-      // wrapping it in rxjs of() to turn the value into an Observable
-      gitHubUrlSpy.and.returnValue(of(mockUrl));
-
-      // Call the #handleGitHubLogin() method we're testing
-      component.handleGitHubLogin();
-
-      // Assert that AuthService.gitHubUrl() was called
-      expect(gitHubUrlSpy).toHaveBeenCalled();
-
-      // Assert that WindowService.goExternal() was called with the mockUrl value
-      expect(goExternalSpy).toHaveBeenCalledWith(mockUrl);
-    });
-
-    it('should not call locationService.go() when AuthService.gitHubUrl() returns a falsy value', () => {
-      // mock a null return value of the AuthService.gitHubUrl() 
-      gitHubUrlSpy.and.returnValue(of(null));
-
-      // Call the #handleGitHubLogin() method we're testing
-      component.handleGitHubLogin();
-
-      // Assert that AuthService.gitHubUrl() was called
-      expect(gitHubUrlSpy).toHaveBeenCalled();
-
-      // Assert that WindowService.goExternal() was not called
-      expect(goExternalSpy).not.toHaveBeenCalledWith();
-    });
+    // Assert that AuthService.gitHubLogin() was called
+    expect(gitHubLoginSpy).toHaveBeenCalled();
   });
-
 
   // TODO: Add tests for component template
   

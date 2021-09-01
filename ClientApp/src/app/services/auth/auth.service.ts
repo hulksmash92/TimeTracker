@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { User } from 'src/app/models/user';
+import { WindowService } from 'src/app/services/window/window.service';
 
 const headers = new HttpHeaders({
   'Content-Type': 'application/json'
@@ -19,15 +20,19 @@ export class AuthService {
   readonly GH_API_URL = '/api/github';
   user: User;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(
+    private readonly http: HttpClient, 
+    private readonly router: Router,
+    private readonly windowService: WindowService
+  ) { }
 
   /**
    * Checks if the user is authenticated
    */
   async isAuthenticated(): Promise<boolean> {
     try {
-      const res = await this.http.get<any>(`${this.API_URL}/isAuthenticated`).toPromise();
-      const success = res.success;
+      const res: any = await this.http.get<any>(`${this.API_URL}/isAuthenticated`).toPromise();
+      const success: boolean = res?.success;
 
       if (!success) {
         this.user = null;
@@ -40,13 +45,16 @@ export class AuthService {
   }
 
   /**
-   * Gets the url for signing in with GitHub
+   * Redirects the user to the GitHub Login page
    */
-  gitHubUrl(): Observable<string> {
-    // TODO: Move redirect to GH login page, and return void (will require injecting the WindowService into here)
-    return this.http.get(`${this.GH_API_URL}/url`).pipe(
-      map((res: any) => res?.data)
-    );
+  async gitHubLogin(): Promise<void> {
+    try {
+      const res: any = await this.http.get<any>(`${this.GH_API_URL}/url`).toPromise();
+      const ghUrl: string = res?.data;
+      this.windowService.goExternal(ghUrl);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   /**
