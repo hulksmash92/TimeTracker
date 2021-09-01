@@ -2,8 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { User } from 'src/app/models/user';
 
@@ -26,16 +26,13 @@ export class AuthService {
    */
   async isAuthenticated(): Promise<boolean> {
     try {
-      const success = await this.http.get(`${this.API_URL}/isAuthenticated`).pipe(
-        map((res: any) => res?.success),
-        catchError((err: any) => of(false))
-      ).toPromise();
+      const res = await this.http.get<any>(`${this.API_URL}/isAuthenticated`).toPromise();
+      const success = res.success;
 
       if (!success) {
         this.user = null;
         this.router.navigate(['']);
       }
-      
       return success;
     } catch (e) {
       return false;
