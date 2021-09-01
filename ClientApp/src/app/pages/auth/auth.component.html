@@ -1,3 +1,16 @@
-<p>auth works!</p>
+<div class="container">
+    <mat-card class="mat-elevation-z8 auth-page-content">
 
-<!-- TODO: Add login button when user not authenticated -->
+        <div class="auth-page-header">
+            <h1 class="mat-display-2 mb-0">Welcome to the Dev TimeTracker</h1>
+            <h2 class="mat-h2 mb-4">Sign in using one of the methods below</h2>
+        </div>
+
+        <div class="login-btn-wrapper">
+            <button mat-raised-button class="login-btn login-btn-github" (click)="login('github')">
+                <img class="login-btn-logo" src="../../../assets/images/logo-github.svg">
+                <span>Continue with GitHub</span>
+            </button>
+        </div>
+    </mat-card>
+</div>

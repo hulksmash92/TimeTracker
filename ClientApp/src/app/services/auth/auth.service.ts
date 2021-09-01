@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { User } from 'src/app/models/user';
 import { WindowService } from 'src/app/services/window/window.service';

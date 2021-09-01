@@ -56,4 +56,15 @@ export class AuthComponent implements OnDestroy {
       });
   }
 
+  /**
+   * Logs into the application using the selected auth provider
+   * 
+   * @param provider name of the selected provider
+   */
+  login(provider: string): void {
+    if (provider === 'github') {
+      this.authService.gitHubLogin();
+    }
+  }
+
 }
