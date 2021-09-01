@@ -121,20 +121,6 @@ describe('UserMenuComponent', () => {
     });
   });
 
-  it('#handleGitHubLogin() should call AuthService.gitHubLogin()', () => {
-    // Spy on our AuthService.gitHubUrl() method
-    const gitHubLoginSpy = spyOn(authService, 'gitHubLogin');
-
-    // Mock the return value to be an empty promise
-    gitHubLoginSpy.and.returnValue(Promise.resolve());
-
-    // Call the #handleGitHubLogin() method we're testing
-    component.handleGitHubLogin();
-
-    // Assert that AuthService.gitHubLogin() was called
-    expect(gitHubLoginSpy).toHaveBeenCalled();
-  });
-
   // TODO: Add tests for component template
   
 });

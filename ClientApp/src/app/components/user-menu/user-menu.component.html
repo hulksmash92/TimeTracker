@@ -17,8 +17,8 @@
 <mat-menu #userMenu="matMenu">
     <ng-template matMenuContent>
         <ng-container *ngIf="!user; else loggedInMenu">
-            <button mat-menu-item (click)="handleGitHubLogin()">
-                Log in with GitHub
+            <button mat-menu-item routerLink="/auth">
+                Sign In
             </button>
         </ng-container>
         

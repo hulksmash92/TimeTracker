@@ -33,11 +33,4 @@ export class UserMenuComponent implements OnInit {
     }
   }
 
-  /**
-   * Handles the click event for the sign in with github button
-   */
-  handleGitHubLogin(): void {
-    this.authService.gitHubLogin();
-  }
-
 }
