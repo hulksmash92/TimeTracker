@@ -19,6 +19,10 @@ export class AuthComponent implements OnDestroy {
    */
   readonly routeQuerySub = new Subscription();
 
+  get isAuthenticated(): boolean {
+    return !!this.authService.user?.id;
+  }
+
   constructor(
     route: ActivatedRoute, 
     private readonly authService: AuthService, 
