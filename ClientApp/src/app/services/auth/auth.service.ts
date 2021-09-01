@@ -24,26 +24,29 @@ export class AuthService {
   /**
    * Checks if the user is authenticated
    */
-  isAuthenticated(): Promise<boolean> {
-    return this.http.get(`${this.API_URL}/isAuthenticated`).pipe(
-      map((res: any) => res?.success),
-      catchError((err: any) => of(false))
-    )
-    .toPromise()
-    .then((success: boolean) => {
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      const success = await this.http.get(`${this.API_URL}/isAuthenticated`).pipe(
+        map((res: any) => res?.success),
+        catchError((err: any) => of(false))
+      ).toPromise();
+
       if (!success) {
         this.user = null;
         this.router.navigate(['']);
       }
+      
       return success;
-    })
-    .catch(() => false);
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
    * Gets the url for signing in with GitHub
    */
   gitHubUrl(): Observable<string> {
+    // TODO: Move redirect to GH login page, and return void (will require injecting the WindowService into here)
     return this.http.get(`${this.GH_API_URL}/url`).pipe(
       map((res: any) => res?.data)
     );

@@ -7,6 +7,8 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SettingsComponent implements OnInit {
 
+  // TODO: Add some user amendment to here
+
   constructor() { }
 
   ngOnInit(): void {
