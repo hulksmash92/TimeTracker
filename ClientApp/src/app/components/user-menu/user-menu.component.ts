@@ -34,7 +34,7 @@ export class UserMenuComponent implements OnInit {
   }
 
   signOut(): void {
-    
+    this.authService.signOut();
   }
 
 }

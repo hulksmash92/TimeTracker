@@ -34,12 +34,27 @@ export class AuthService {
       const success: boolean = res?.success;
 
       if (!success) {
-        this.user = null;
-        this.router.navigate(['']);
+        this.resetUser();
       }
       return success;
     } catch (e) {
       return false;
+    }
+  }
+
+  /**
+   * Signs the user out from the application
+   */
+  async signOut(): Promise<void> {
+    try {
+      const res: any = await this.http.get<any>(`${this.API_URL}/signOut`).toPromise();
+      const success: boolean = res?.success;
+
+      if (success) {
+        this.resetUser();
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -68,6 +83,14 @@ export class AuthService {
     const url = `${this.GH_API_URL}/login`;
     const body = JSON.stringify({sessionCode});
     return this.http.post(url, body, { headers });
+  }
+
+  /**
+   * Resets the user value to null and redirects the app user to the home page
+   */
+  private resetUser(): void {
+    this.user = null;
+    this.router.navigate(['']);
   }
 
 }
