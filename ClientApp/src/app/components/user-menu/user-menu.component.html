@@ -23,7 +23,7 @@
         </ng-container>
         
         <ng-template #loggedInMenu>
-            <button mat-menu-item>
+            <button mat-menu-item class="cursor-default">
                 Signed in as {{user.name}}
             </button>
 
@@ -33,6 +33,10 @@
 
             <button mat-menu-item [routerLink]="['/time']">
                 <mat-icon>timer</mat-icon> Time Entries
+            </button>
+
+            <button mat-menu-item (click)="signOut()">
+                <mat-icon>logout</mat-icon> Sign Out
             </button>
         </ng-template>
     </ng-template>

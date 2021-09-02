@@ -33,4 +33,8 @@ export class UserMenuComponent implements OnInit {
     }
   }
 
+  signOut(): void {
+    
+  }
+
 }
