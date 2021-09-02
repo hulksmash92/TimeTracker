@@ -38,13 +38,20 @@ func configureRouter() *mux.Router {
 	router.Use(CheckAuthHandler)
 
 	// Configure any API routes
+	// Auth
+	router.HandleFunc("/api/auth/isAuthenticated", isAuthenticated).Methods(http.MethodGet)
+	router.HandleFunc("/api/auth/signOut", signOut).Methods(http.MethodGet)
+
+	// Github
 	router.HandleFunc("/api/github/url", getGitHubLoginUrl).Methods(http.MethodGet)
 	router.HandleFunc("/api/github/login", getGitHubAccessToken).Methods(http.MethodPost)
 	router.HandleFunc("/api/github/search", searchGitHubRepos).Methods(http.MethodGet)
 	router.HandleFunc("/api/github/repo/{owner}/{repo}/{itemType}", getGitHubRepoItems).Methods(http.MethodGet)
 
+	// User
 	router.HandleFunc("/api/user", getUser).Methods(http.MethodGet)
-	router.HandleFunc("/api/auth/isAuthenticated", isAuthenticated).Methods(http.MethodGet)
+
+	// Time
 	router.HandleFunc("/api/time", timeRouteHandler).Methods(http.MethodGet, http.MethodPost)
 	router.HandleFunc("/api/time/{id}", timeRouteHandler).Methods(http.MethodPatch, http.MethodDelete)
 	router.HandleFunc("/api/time/tags", getTags).Methods(http.MethodGet)
