@@ -33,6 +33,9 @@ export class UserMenuComponent implements OnInit {
     }
   }
 
+  /**
+   * handles the click event from the sign out option to log the current user out of the application
+   */
   signOut(): void {
     this.authService.signOut();
   }

@@ -18,7 +18,7 @@
     <ng-template matMenuContent>
         <ng-container *ngIf="!user; else loggedInMenu">
             <button mat-menu-item routerLink="/auth">
-                Sign In
+                <mat-icon>login</mat-icon> Sign In
             </button>
         </ng-container>
         
