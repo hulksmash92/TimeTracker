@@ -97,6 +97,23 @@ func GetUserByGitHubLogin(githubUserId string) models.User {
 	return user
 }
 
+// Updates the user's profile
+func UpdateUserProfile(userId uint, name, email *string) {
+	newName := ""
+	newEmail := ""
+
+	if name != nil {
+		newName = *name
+	}
+	if email != nil {
+		newEmail = *email
+	}
+
+	dbConn := ConnectDB()
+	_, err := dbConn.Exec("call sp_update_user($1, $2, $3)", userId, newName, newEmail)
+	helpers.HandleError(err)
+}
+
 // Reads a user from a sql row
 func readUserFromSqlRow(row *sql.Row) models.User {
 	var user models.User

@@ -49,7 +49,7 @@ func configureRouter() *mux.Router {
 	router.HandleFunc("/api/github/repo/{owner}/{repo}/{itemType}", getGitHubRepoItems).Methods(http.MethodGet)
 
 	// User
-	router.HandleFunc("/api/user", userRouteHandler).Methods(http.MethodGet, http.MethodPatch)
+	router.HandleFunc("/api/user", userRouteHandler).Methods(http.MethodGet, http.MethodPut)
 
 	// Time
 	router.HandleFunc("/api/time", timeRouteHandler).Methods(http.MethodGet, http.MethodPost)

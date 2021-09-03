@@ -6,7 +6,6 @@ import (
 	"timetracker/db"
 	"timetracker/github"
 	"timetracker/helpers"
-	"timetracker/models"
 )
 
 // Handles the user api calls by calling the method used to handle
@@ -15,7 +14,7 @@ func userRouteHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		getUser(w, r)
-	case http.MethodPatch:
+	case http.MethodPut:
 		updateUser(w, r)
 	}
 }
@@ -36,15 +35,20 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 
 // Structure of the values a user can update in the update user model
 type UpdateUserReqBody struct {
-	Name          *string                `json:"name,omitempty"`
-	Email         *string                `json:"email,omitempty"`
-	ApiClients    []*models.ApiClient    `json:"apiClients,omitempty"`
-	Organisations []*models.Organisation `json:"organisations,omitempty"`
+	Name  *string `json:"name,omitempty"`
+	Email *string `json:"email,omitempty"`
 }
 
 // Handles the update user api calls
 func updateUser(w http.ResponseWriter, r *http.Request) {
-	//userId := getUserId(r)
+	userId := getUserId(r)
+	body := readBody(r)
+	var newValues UpdateUserReqBody
+	err := json.Unmarshal(body, &newValues)
+	helpers.HandleError(err)
+
+	// Call the user profile update func
+	db.UpdateUserProfile(userId, newValues.Name, newValues.Email)
 
 	resp := map[string]interface{}{
 		"success": true,

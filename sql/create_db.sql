@@ -136,3 +136,28 @@ VALUES ('Feature')
     , ('Proof of concept')
     , ('Bug Fix')
     , ('Research')
+
+-- Updates the user details
+CREATE OR REPLACE PROCEDURE sp_user_update (
+    user_id BIGINT,
+    new_name VARCHAR(200),
+    new_email VARCHAR(400)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    IF TRIM(BOTH FROM COALESCE(new_name, '')) = '' THEN
+        new_name = NULL;
+    END IF;
+    IF TRIM(BOTH FROM COALESCE(new_name, '')) = '' THEN
+        new_email = NULL;
+    END IF;
+
+    UPDATE tbl_user
+    SET updated = NOW(),
+        name = coalesce(new_name, githubuserid),
+        email = new_email
+    WHERE id = user_id;
+
+END;$$;
