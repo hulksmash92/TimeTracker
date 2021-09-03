@@ -97,6 +97,18 @@ func GetUserByGitHubLogin(githubUserId string) models.User {
 	return user
 }
 
+// Reads a user from a sql row
+func readUserFromSqlRow(row *sql.Row) models.User {
+	var user models.User
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Created, &user.Updated, &user.GithubUserId, &user.Avatar)
+	helpers.HandleError(err)
+
+	user.ApiClients = []models.ApiClient{}
+	user.Organisations = []models.Organisation{}
+
+	return user
+}
+
 // Updates the user's profile
 func UpdateUserProfile(userId uint, name, email *string) {
 	newName := ""
@@ -113,17 +125,3 @@ func UpdateUserProfile(userId uint, name, email *string) {
 	_, err := dbConn.Exec("call sp_update_user($1, $2, $3)", userId, newName, newEmail)
 	helpers.HandleError(err)
 }
-
-// Reads a user from a sql row
-func readUserFromSqlRow(row *sql.Row) models.User {
-	var user models.User
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Created, &user.Updated, &user.GithubUserId, &user.Avatar)
-	helpers.HandleError(err)
-
-	user.ApiClients = []models.ApiClient{}
-	user.Organisations = []models.Organisation{}
-
-	return user
-}
-
-// TODO: Add user modification
