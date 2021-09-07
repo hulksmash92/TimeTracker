@@ -14,12 +14,7 @@ func isAuthenticated(w http.ResponseWriter, r *http.Request) {
 
 // Signs a user out of the application by removing any auth related cookies
 func signOut(w http.ResponseWriter, r *http.Request) {
-	emptyCookie := &http.Cookie{
-		Name:   tokenCookieName,
-		MaxAge: -1,
-	}
-	http.SetCookie(w, emptyCookie)
-
+	logoutUser(w, r)
 	resp := map[string]interface{}{
 		"success": true,
 	}

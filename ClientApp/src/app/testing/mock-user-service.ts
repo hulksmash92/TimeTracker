@@ -6,4 +6,12 @@ export class MockUserService {
     get(): Observable<any> {
         return of({});
     }
+
+    update(newValues: any): Observable<any> {
+        return of({success: true});
+    }
+
+    delete(): Observable<any> {
+        return of({success: true});
+    }
 }

@@ -49,7 +49,7 @@ func configureRouter() *mux.Router {
 	router.HandleFunc("/api/github/repo/{owner}/{repo}/{itemType}", getGitHubRepoItems).Methods(http.MethodGet)
 
 	// User
-	router.HandleFunc("/api/user", userRouteHandler).Methods(http.MethodGet, http.MethodPut)
+	router.HandleFunc("/api/user", userRouteHandler).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
 
 	// Time
 	router.HandleFunc("/api/time", timeRouteHandler).Methods(http.MethodGet, http.MethodPost)
@@ -88,4 +88,13 @@ func getUserId(r *http.Request) uint {
 	ct, err := github.CheckToken(token)
 	helpers.HandleError(err)
 	return db.GetUserId(*ct.User.Login)
+}
+
+// Logs the user out of their current session by removing the login token
+func logoutUser(w http.ResponseWriter, r *http.Request) {
+	emptyCookie := &http.Cookie{
+		Name:   tokenCookieName,
+		MaxAge: -1,
+	}
+	http.SetCookie(w, emptyCookie)
 }

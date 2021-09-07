@@ -36,4 +36,13 @@ export class UserService {
     return this.http.patch<any>(this.API_URL, JSON.stringify(newValues), { headers });
   }
 
+  /**
+   * Deletes the current user from the application and signs them out
+   * 
+   * @returns any object containing true if deleted successfully 
+   */
+  delete(): Observable<any> {
+    return this.http.delete<any>(this.API_URL);
+  }
+
 }

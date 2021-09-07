@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"timetracker/db"
 	"timetracker/github"
@@ -16,6 +17,8 @@ func userRouteHandler(w http.ResponseWriter, r *http.Request) {
 		getUser(w, r)
 	case http.MethodPut:
 		updateUser(w, r)
+	case http.MethodDelete:
+		deleteUser(w, r)
 	}
 }
 
@@ -53,5 +56,26 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	resp := map[string]interface{}{
 		"success": true,
 	}
+	apiResponse(resp, w)
+}
+
+// Deletes the selected user
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	// Get the ID for the user in the DB
+	// Check if it exists
+	userId := getUserId(r)
+	if userId == 0 {
+		helpers.HandleError(errors.New("User does not exist"))
+	}
+
+	// Delete the user from the database
+	db.DeleteUser(userId)
+
+	// Log the user out from their current session as it will no longer be valid
+	logoutUser(w, r)
+
+	// send success signal back to caller if all statements
+	// above succeeded, the error handler should not have been called
+	resp := map[string]interface{}{"success": true}
 	apiResponse(resp, w)
 }

@@ -88,7 +88,7 @@ export class AuthService {
   /**
    * Resets the user value to null and redirects the app user to the home page
    */
-  private resetUser(): void {
+  resetUser(): void {
     this.user = null;
     this.router.navigate(['']);
   }

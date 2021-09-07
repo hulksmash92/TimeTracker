@@ -12,12 +12,14 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SettingsComponent } from './settings.component';
 import { SettingsRoutingModule } from './settings-routing.module';
 import { UserProfileFormComponent } from './components/user-profile-form/user-profile-form.component';
+import { UserDeleteFormComponent } from './components/user-delete-form/user-delete-form.component';
 
 
 @NgModule({
   declarations: [
     SettingsComponent,
-    UserProfileFormComponent
+    UserProfileFormComponent,
+    UserDeleteFormComponent
   ],
   imports: [
     CommonModule,

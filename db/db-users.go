@@ -125,3 +125,10 @@ func UpdateUserProfile(userId uint, name, email *string) {
 	_, err := dbConn.Exec("call sp_update_user($1, $2, $3)", userId, newName, newEmail)
 	helpers.HandleError(err)
 }
+
+// Deletes the selected user
+func DeleteUser(userId uint) {
+	dbConn := ConnectDB()
+	_, err := dbConn.Exec("DELETE FROM tbl_user WHERE id = $1", userId)
+	helpers.HandleError(err)
+}
