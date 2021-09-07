@@ -26,11 +26,16 @@ export class UserDeleteFormComponent implements OnDestroy {
    * Opens a confirmation dialog for the user to confirm deletion
    */
   handleBtnClick(): void {
-    const dialogRef = this.matDialog.open(UserDeleteConfirmComponent);
+    const dialogRef = this.matDialog.open(UserDeleteConfirmComponent, {
+      autoFocus: false,
+      minWidth: '60vw'
+    });
 
-    // dialogRef.afterClosed().subscribe(result => {
-    //   console.log('returned value:', result);
-    // });
+    dialogRef.afterClosed().subscribe(result => {
+      if (!!result) {
+        this.deleteUser();
+      }
+    });
   }
 
   /**
