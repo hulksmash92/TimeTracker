@@ -8,6 +8,7 @@ import { UserService } from 'src/app/services/user/user.service';
 import { MockAuthService, MockUserService } from 'src/app/testing';
 
 import { UserDeleteFormComponent } from './user-delete-form.component';
+import { UserDeleteConfirmComponent } from '../user-delete-confirm/user-delete-confirm.component';
 
 describe('UserDeleteFormComponent', () => {
   let component: UserDeleteFormComponent;
@@ -15,7 +16,10 @@ describe('UserDeleteFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UserDeleteFormComponent ],
+      declarations: [ 
+        UserDeleteFormComponent,
+        UserDeleteConfirmComponent 
+      ],
       imports: [
         NoopAnimationsModule,
         MatButtonModule,
