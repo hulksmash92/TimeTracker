@@ -11,18 +11,25 @@ import (
 // Global database connection, will be reused when a funcs calls connectDB()
 var dbConnection *sql.DB
 
-// Defines pagination params
+// Describes server-side pagination and sorting parameters when rendering data
 type Pagination struct {
-	PageSize  uint
+	// Number of records per page
+	PageSize uint
+
+	// Index of the current page (0-based)
 	PageIndex uint
-	Sort      string
-	SortDesc  bool
+
+	// Name of the column to sort by
+	Sort string
+
+	// Whether to sort the data descending or ascending
+	SortDesc bool
 }
 
-// Gets the pagesize
+// Gets the PageSize value, if 0 returns 10
 func (p Pagination) GetPageSize() uint {
 	if p.PageSize == 0 {
-		return 20
+		return 10
 	}
 	return p.PageSize
 }
@@ -35,7 +42,7 @@ func (p Pagination) Offset() uint {
 	return p.PageIndex * p.GetPageSize()
 }
 
-// Gets the direction of sort based on SortDesc val
+// Gets the SQL command for controlling the sort direction based on SortDesc val
 func (p Pagination) SortDirection() string {
 	if p.SortDesc {
 		return "DESC"
@@ -53,7 +60,7 @@ func generatePsqlConnStr() string {
 	db := os.Getenv("PSQL_DB")
 	ssl := os.Getenv("PSQL_SSL")
 
-	// Build our final connection string using the
+	// Build our final connection string using our parsed setting and template string
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, pass, db, ssl)
 }
 

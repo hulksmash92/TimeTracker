@@ -29,34 +29,50 @@ func timeRouteHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handles the GET request for getting a list of time entries for the user
 func getTimeEntries(w http.ResponseWriter, r *http.Request) {
+	// Get the id of the authenticated user making the request
 	userId := getUserId(r)
 
+	// Parse the from date param, if the format is incorrect
+	// or the value is nil/missing, set it to be 29 days ago
 	dateFrom, err := time.Parse(dtParamLayout, r.URL.Query().Get("from"))
 	if err != nil {
 		dateFrom = time.Now().AddDate(0, 0, -29)
 	}
+
+	// Parse the to date param, if the format is incorrect
+	// or the value is nil/missing, set it to now
 	dateTo, err := time.Parse(dtParamLayout, r.URL.Query().Get("to"))
 	if err != nil {
 		dateTo = time.Now()
 	}
 
+	// Parse the current page index param, set to the first page
+	// if the value is missing/nil
 	pageIndex, err := strconv.ParseUint(r.URL.Query().Get("pageIndex"), 10, 32)
 	if err != nil {
 		pageIndex = 0
 	}
+
+	// Parse the current page index param, set to the 10 records per page
+	// if the value missing/nil
 	pageSize, err := strconv.ParseUint(r.URL.Query().Get("pageSize"), 10, 32)
 	if err != nil {
 		pageSize = 10
 	}
+
+	// Parse the name of the column to sort by, default to creation date if missing/blank
 	sort := r.URL.Query().Get("sort")
 	if sort == "" {
 		sort = "created"
 	}
+
+	// Parse the sort descending param and default to true if the value is missing
 	sortDesc, err := strconv.ParseBool(r.URL.Query().Get("sortDesc"))
 	if err != nil {
 		sortDesc = true
 	}
 
+	// Build the object that defines our pagination and sorting params for the database
 	pagination := db.Pagination{
 		PageSize:  uint(pageIndex),
 		PageIndex: uint(pageSize),
@@ -64,7 +80,11 @@ func getTimeEntries(w http.ResponseWriter, r *http.Request) {
 		SortDesc:  sortDesc,
 	}
 
+	// Get our available rows and current page of rows from the database
 	rowCount, timeData := db.GetTimeEntries(userId, dateFrom, dateTo, pagination)
+
+	// Construct our response body object and send back to the caller
+	// indicating that the body is encoded as JSON
 	res := map[string]interface{}{
 		"data": map[string]interface{}{
 			"rowCount": rowCount,

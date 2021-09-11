@@ -35,24 +35,40 @@ var timecols = []string{
 }
 
 // Gets all time entries for a user and the given date range
+// returning the available rows and a page of data for the given date range
 func GetTimeEntries(userId uint, dateFrom, dateTo time.Time, page Pagination) (uint, []models.TimeEntry) {
 	dbConn := ConnectDB()
+
+	// Middle section of our SQL query, will be constructed when we make requests
 	queryMid := ` FROM vw_time_entries AS t WHERE t.userId = $1 AND t.created >= $2 AND t.created <= $3`
+
+	// initialise the return values
 	rowCount := uint(0)
 	time := []models.TimeEntry{}
 
+	// construct the query for getting the available rows
+	// then query the db and parse the count from the returned row
 	query := "SELECT COUNT(*) " + queryMid
 	row := dbConn.QueryRow(query, userId, dateFrom, dateTo)
 	err := row.Scan(&rowCount)
+
+	// Handle any errors returned from our COUNT query
 	helpers.HandleError(err)
 
 	if rowCount > 0 {
+		// if the column to sort by is not in the global timecols array
+		// default to sorting by the creation date & time of the time entries
 		if !helpers.StrArrayContains(timecols, page.Sort) {
 			page.Sort = "created"
 		}
 
+		// construct our sorting and pagination sections of the query
 		queryEnd := fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d;", page.Sort, page.SortDirection(), page.GetPageSize(), page.Offset())
+
+		// Construct the query to retreive a page of time entries
 		query = "SELECT " + strings.Join(timecols, ", ") + queryMid + queryEnd
+
+		// Get any avaiable time entries for the given query
 		time = getTimeEntries(query, userId, dateFrom, dateTo)
 	}
 

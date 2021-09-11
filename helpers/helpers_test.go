@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestHandlerError(t *testing.T) {
+func Test_HandlerError(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Code did not panic")
@@ -14,7 +14,8 @@ func TestHandlerError(t *testing.T) {
 	HandleError(errors.New("Some test error"))
 }
 
-func TestStrArrayContains(t *testing.T) {
+// Tests the
+func Test_StrArrayContains(t *testing.T) {
 	arr := []string{"Chewbacca", "BB8", "R2D2", "Vader", "Obi-Wan"}
 
 	// Test output for item that should be in the array

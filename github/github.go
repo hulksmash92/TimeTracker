@@ -37,20 +37,25 @@ func LoginUrl() (string, error) {
 
 // Gets the access token for github
 func GetAccessToken(sessionCode string) (string, error) {
+	var token string
+
 	clientId := getClientID()
 	clientSecret := getClientSecret()
+
+	// Construct the form POST request payload
 	data := url.Values{
 		"client_id":     {clientId},
 		"client_secret": {clientSecret},
 		"code":          {sessionCode},
 	}
+
+	// Get the token URL from our environment variables
 	tokenUrl := os.Getenv("GITHUB_URL_TOKEN")
 
-	var token string
-
 	// Make a request to github to get the user's access token
-	// Check for any errors in the request
 	resp, err := http.PostForm(tokenUrl, data)
+
+	// Check for any errors in the request
 	if err != nil {
 		return token, err
 	}
@@ -75,6 +80,7 @@ func GetAccessToken(sessionCode string) (string, error) {
 		return token, errors.New(tokenErr)
 	}
 
+	// Check that the scopes part of the
 	if !helpers.StrArrayContains(tokenResData["scope"], "repo,user:email") {
 		return token, errors.New("Invalid token scopes")
 	}
@@ -86,14 +92,21 @@ func GetAccessToken(sessionCode string) (string, error) {
 
 // Checks the access token given to a user
 func CheckToken(token string) (*github.Authorization, error) {
+	// Get our GitHub OAuth application ID
 	clientID := getClientID()
+
+	// Create a new basic authentication client to use in the request
 	client, ctx := getBasicAuthClient()
+
+	// Check the token using the go-github library and grab the response
 	auth, _, err := client.Authorizations.Check(ctx, clientID, token)
 
+	// Check that the response has a value and no errors are present
 	if auth == nil || err != nil {
 		return nil, err
 	}
 
+	// Return the response and no errors
 	return auth, nil
 }
 
@@ -155,11 +168,17 @@ func GetCommits(token, owner, repo string, from time.Time, to time.Time) ([]*git
 
 // Gets a new github client with basic auth configured
 func getBasicAuthClient() (*github.Client, context.Context) {
+	// Get the of context tree's root so we can use for any incoming requests
 	ctx := context.Background()
+
+	// Create the basic auth transport with the app's
+	// client ID and secret
 	bat := &github.BasicAuthTransport{
 		Username: getClientID(),
 		Password: getClientSecret(),
 	}
+
+	// Create the new client and return it, along with the context
 	return github.NewClient(bat.Client()), ctx
 }
 
@@ -175,12 +194,12 @@ func getOauthClient(token string) (*github.Client, context.Context) {
 	return ghClient, ctx
 }
 
-// Gets the GitHub OAuth client ID
+// Gets the GitHub OAuth client ID from the environment
 func getClientID() string {
 	return os.Getenv("GITHUB_CLIENT_ID")
 }
 
-// Gets the client secret for the GitHub OAuth client
+// Gets the client secret for the GitHub OAuth client from the environment
 func getClientSecret() string {
 	return os.Getenv("GITHUB_CLIENT_SECRET")
 }

@@ -42,20 +42,30 @@ export class TimeService {
    * @returns array of the time entries
    */
   get(from: Date, to: Date, pageIndex: number, pageSize: number, sort: string, sortDesc: boolean): Observable<PaginatedTable<TimeEntry>> {
+
+    // Create a new collection of HttpParams to pass to the API
     let params = new HttpParams();
+
+    // Add the date range start param
     if (!!from) {
       params = params.append('from', from.toISOString());
     }
+
+    // Add the date range end param
     if (!!to) {
       params = params.append('to', to.toISOString());
     }
+
+    // Add the required pagination and sorting params
+    // setting any null/undefined values to defaults
     params = params.append('pageIndex', `${(pageIndex ?? 0)}`);
     params = params.append('pageSize', `${(pageSize ?? 10)}`);
     params = params.append('sort', `${(sort || 'created')}`);
     params = params.append('sortDesc', `${(sortDesc ?? true)}`);
 
+    // Request the data from the API
     return this.http.get(this.API_URL, { params }).pipe(
-      map((res: any) => res?.data || [])
+      map((res: any) => res?.data || new PaginatedTable<TimeEntry>())
     );
   }
 
