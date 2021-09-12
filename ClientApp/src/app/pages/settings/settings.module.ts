@@ -7,13 +7,13 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
 
 import { SettingsComponent } from './settings.component';
 import { SettingsRoutingModule } from './settings-routing.module';
 import { UserProfileFormComponent } from './components/user-profile-form/user-profile-form.component';
 import { UserDeleteFormComponent } from './components/user-delete-form/user-delete-form.component';
 import { UserDeleteConfirmComponent } from './components/user-delete-confirm/user-delete-confirm.component';
-
 
 @NgModule({
   declarations: [
@@ -33,6 +33,7 @@ import { UserDeleteConfirmComponent } from './components/user-delete-confirm/use
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatListModule,
   ],
 })
 export class SettingsModule { }

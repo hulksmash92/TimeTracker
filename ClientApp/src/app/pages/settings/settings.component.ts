@@ -1,17 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent {
+  visibleSection: string = 'profile';
 
-  // TODO: Add some user amendment to here
-
-  constructor() { }
-
-  ngOnInit(): void {
+  
+  changeVisibleSection(section: string): void {
+    if (this.visibleSection !== section) {
+      this.visibleSection = section;
+    }
   }
-
 }

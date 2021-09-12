@@ -1,5 +1,28 @@
 <div class="container">
-    <user-profile-form></user-profile-form>
+    <div class="row">
+        <div class="col-12 col-md-3 col-lg-2">
+            <mat-action-list>
+                <button mat-list-item 
+                        [ngClass]="{'settings-nav-active': visibleSection === 'profile'}" 
+                        (click)="changeVisibleSection('profile')">
+                    Profile
+                </button>
+                <button mat-list-item 
+                        [ngClass]="{'settings-nav-active': visibleSection === 'account'}" 
+                        (click)="changeVisibleSection('account')">
+                    Account
+                </button>
+            </mat-action-list>
+        </div>
 
-    <user-delete-form></user-delete-form>
+        <div class="col-12 col-md-9 col-lg 10" [ngSwitch]="visibleSection">
+            <ng-container *ngSwitchCase="'account'">
+                <user-delete-form></user-delete-form>
+            </ng-container>
+
+            <ng-container *ngSwitchDefault>
+                <user-profile-form></user-profile-form>
+            </ng-container>
+        </div>
+    </div>
 </div>

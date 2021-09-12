@@ -122,8 +122,7 @@ export class TimeComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Deletes the selected time entry
-   * 
+   * Deletes the selected time entry and then refreshes the table if successful
    * @param id id of the item to update
    */
   delete(id: number): void {
@@ -131,12 +130,7 @@ export class TimeComponent implements OnInit, OnDestroy {
       this.timeService.delete(id)
         .subscribe((success: boolean) => {
           if (success) {
-            const data = [...this.data];
-            const index = data.findIndex(t => t.id === id);
-            if (index > -1) {
-              data.splice(index, 1);
-              this.data = [...data];
-            }
+            this.get();
           }
         });
     }

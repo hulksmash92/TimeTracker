@@ -132,16 +132,26 @@ func updateTime(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-// Handles the DELETE request for deleting an existing time entry
+// Handles the HTTP DELETE request for deleting a user's existing time entry
 func deleteTime(w http.ResponseWriter, r *http.Request) {
+	// Get the ID of the current user
 	userId := getUserId(r)
+
+	// Get the variable in the URL i.e. {id}
 	vars := mux.Vars(r)
+
+	// Parse the time entries id from the URL and check for any errors
 	entryId, err := strconv.ParseUint(vars["id"], 10, 32)
 	helpers.HandleError(err)
 
+	// Delete the time entry from the database, if successful the
+	// returned error will be nil
 	err = db.DeleteTimeEntry(userId, uint(entryId))
+
+	// Check if an error is present
 	helpers.HandleError(err)
 
+	// return true in the data property of the bodyif no errors are present
 	res := map[string]bool{"data": err != nil}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)

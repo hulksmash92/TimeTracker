@@ -321,36 +321,56 @@ func updateTimeProp(timeEntryId uint, propName string, value interface{}) {
 
 // Deletes the selected time entry
 func DeleteTimeEntry(userId, timeEntryId uint) error {
+	// Check that the time entry and user ids are valid and that the user
+	// can delete this time entry and return an error where necessary
 	if err := checkUserIdAndTimeEntryIdValue(userId, timeEntryId); err != nil {
 		return err
 	}
 
+	// Connect to the database and remove delete the selected time entry
 	dbConn := ConnectDB()
 	_, err := dbConn.Exec(`call sp_time_delete($1)`, timeEntryId)
+
+	// Return the error received from the database
+	// if nil, deletion was successful
 	return err
 }
 
 // Checks if the user and time entry ids are valid
 func checkUserIdAndTimeEntryIdValue(userId, timeEntryId uint) error {
+	// Return invalid time entry id error if time entry is 0
 	if timeEntryId == 0 {
 		return errors.New("invalid time entry Id")
 	}
+
+	// Return an invalid user error if the user cannot be found
 	if userId == 0 {
 		return errors.New("invalid user id")
 	}
+
+	// Return an access denied error if user is trying to
+	// amend a time entry they do not have permissions for
 	if !canAmendTimeEntry(userId, timeEntryId) {
 		return errors.New("access denied: cannot amend the selected time entry")
 	}
+
+	// all the above is fine, so return nil to indicate this
 	return nil
 }
 
-// Checks if the user can amend the selected time entry
+// Checks if the user can amend or delete the selected time entry
 func canAmendTimeEntry(userId, timeEntryId uint) bool {
 	dbConn := ConnectDB()
+
+	// Get the user ID for the selected time entry from the database
 	var timeUserId uint = 0
 	row := dbConn.QueryRow(`SELECT userId FROM tbl_timeentry WHERE id = $1`, timeEntryId)
 	err := row.Scan(&timeUserId)
+
+	// handle any errors returned from the database
 	helpers.HandleError(err)
 
+	// Check that the user trying to amend a time entry
+	// is the owner/creator of the time entry
 	return timeUserId == userId
 }

@@ -98,9 +98,7 @@ export class TimeService {
 
   /**
    * Deletes the selected time entry 
-   * 
    * @param id time entry id to delete
-   * 
    * @returns true or false if successful
    */
   delete(id: number): Observable<boolean> {
