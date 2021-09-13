@@ -4,7 +4,17 @@ import { User } from '../models/user';
 export class MockAuthService {
     readonly API_URL = '/api/auth';
     readonly GH_API_URL = '/api/github';
-    user: User;
+    user: User = {
+        id: 1,
+        name: 'Alex',
+        email: 'alex@example.com',
+        githubUserId: 'hulksmash92',
+        created: new Date(),
+        updated: new Date(),
+        avatar: null,
+        organisations: [],
+        apiClients: []
+    };
 
     isAuthenticated(): Promise<boolean> {
         return Promise.resolve(true);

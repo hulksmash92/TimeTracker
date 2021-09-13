@@ -14,7 +14,7 @@ func Test_generatePsqlConnStr(t *testing.T) {
 	os.Setenv("PSQL_DB", "timetracker")
 	os.Setenv("PSQL_SSL", "disable")
 
-	expected := "host=localhost port=5432 user=postgres password=password123 dbname=timetracker sslmode=disable"
+	expected := "host=localhost port=5432 user=postgres password=password123 dbname=timetracker sslmode=enable"
 
 	result := generatePsqlConnStr()
 

@@ -24,7 +24,7 @@ export class UserProfileFormComponent implements OnInit {
    * Used when resetting the form control values
    */
   get currentUser(): User {
-    return this.authService.user;
+    return this.authService?.user;
   }
 
   constructor(private readonly userService: UserService, private authService: AuthService) { }
@@ -39,8 +39,8 @@ export class UserProfileFormComponent implements OnInit {
   reset(): void {
     this.formGroup.reset();
     this.formGroup.patchValue({
-      name: this.currentUser.name,
-      email: this.currentUser.email,
+      name: this.currentUser?.name,
+      email: this.currentUser?.email,
     });
     this.formGroup.markAsUntouched();
   }

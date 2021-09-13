@@ -11,6 +11,8 @@ import { By } from '@angular/platform-browser';
  * 
  * @example // In your component spec file create a subclass like
  * class AppComponentTestingPage extends TestingPage {
+ *     get button() { return this.query<HTMLButtonElement>('button.my-button'); }
+ *     
  *     constructor(protected readonly fixture: ComponentFixture<AppComponent>) {
  *         super(fixture);
  *     }
@@ -120,7 +122,7 @@ export abstract class TestingPage {
      * 
      * @param harnessQuery query for the harness to create
      */
-     public getAllHarnesses<T extends ComponentHarness>(harnessQuery: HarnessQuery<T>): Promise<T[]> {
+    public getAllHarnesses<T extends ComponentHarness>(harnessQuery: HarnessQuery<T>): Promise<T[]> {
         return this.matHarnessLoader.getAllHarnesses(harnessQuery);
     }
 }
